@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CivicSpend: Transparency & Voice</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    
+    <style>
+        :root { --google-blue: #4285F4; --google-red: #EA4335; --google-yellow: #FBBC05; --google-green: #34A853; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f8f9fa; color: #202124; }
+        header { background: white; padding: 1rem 5%; border-bottom: 1px solid #dadce0; display: flex; justify-content: space-between; align-items: center; }
+        .badge { background: var(--google-blue); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+        
+        main { display: grid; grid-template-columns: 1fr 350px; gap: 20px; padding: 20px 5%; }
+        .card { background: white; border-radius: 8px; border: 1px solid #dadce0; padding: 20px; box-shadow: 0 1px 2px rgba(60,64,67,0.3); }
+        
+        h2 { margin-top: 0; color: var(--google-blue); font-size: 1.2rem; }
+        #chart_div { width: 100%; height: 400px; }
+        
+        /* Feedback Form Styles */
+        .slider-group { margin-bottom: 15px; }
+        .slider-group label { display: block; font-size: 0.9rem; margin-bottom: 5px; font-weight: bold; }
+        input[type=range] { width: 100%; accent-color: var(--google-green); }
+        button { width: 100%; padding: 12px; background: var(--google-blue); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #174ea6; }
+        #status-msg { margin-top: 10px; font-size: 0.85rem; text-align: center; color: var(--google-green); }
+
+        @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <strong>CivicSpend</strong> <span class="badge">Transparency Portal</span>
+    </div>
+    <div id="live-indicator" style="font-size: 0.8rem; color: #5f6368;">● Connected to Firebase Live</div>
+</header>
+
+<main>
+    <div class="card">
+        <h2>Current Budget Allocation (2024)</h2>
+        <p style="font-size: 0.9rem; color: #5f6368;">Real-time data from city records.</p>
+        <div id="chart_div">Loading live data...</div>
+    </div>
+
+    <div class="card">
+        <h2>Your Voice Matters</h2>
+        <p style="font-size: 0.85rem; color: #5f6368;">How should we spend the 2025 budget? Adjust your priorities below:</p>
+        
+        <div id="feedback-form">
+            <div class="slider-group">
+                <label>Education: <span id="val-edu">25</span>%</label>
+                <input type="range" id="edu" min="0" max="100" value="25" oninput="updateVal('edu')">
+            </div>
+            <div class="slider-group">
+                <label>Infrastructure: <span id="val-inf">25</span>%</label>
+                <input type="range" id="inf" min="0" max="100" value="25" oninput="updateVal('inf')">
+            </div>
+            <div class="slider-group">
+                <label>Healthcare: <span id="val-hel">25</span>%</label>
+                <input type="range" id="hel" min="0" max="100" value="25" oninput="updateVal('hel')">
+            </div>
+            <div class="slider-group">
+                <label>Environment: <span id="val-env">25</span>%</label>
+                <input type="range" id="env" min="0" max="100" value="25" oninput="updateVal('env')">
+            </div>
+            <button onclick="submitFeedback()">Submit Recommendation</button>
+            <div id="status-msg"></div>
+        </div>
+    </div>
+</main>
+
+<script type="module">
+    // 1. IMPORT FIREBASE
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // 2. CONFIGURATION (Replace with yours!)
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        databaseURL: "https://local-budget-transparency-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "local-budget-transparency",
+        // ... paste remaining keys here
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 3. GOOGLE CHARTS LOGIC
+    google.charts.load('current', {'packages':['corechart']});
+    
+    // Listen for budget data
+    const budgetRef = ref(db, 'budgets/2024');
+    onValue(budgetRef, (snapshot) => {
+        const data = snapshot.val();
+        if(data) google.charts.setOnLoadCallback(() => drawChart(data));
+    });
+
+    function drawChart(budgetData) {
+        const chartData = [['Category', 'Amount']];
+        Object.keys(budgetData).forEach(key => chartData.push([key, budgetData[key]]));
+
+        const dataTable = google.visualization.arrayToDataTable(chartData);
+        const options = {
+            pieHole: 0.4,
+            chartArea: {width: '90%', height: '80%'},
+            colors: ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#9334E6'],
+            legend: { position: 'bottom' }
+        };
+
+        const chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+        chart.draw(dataTable, options);
+    }
+
+    // 4. FEEDBACK LOGIC
+    window.updateVal = (id) => {
+        document.getElementById('val-' + id).innerText = document.getElementById(id).value;
+    };
+
+    window.submitFeedback = () => {
+        const feedbackRef = ref(db, 'citizen_proposals');
+        const newProposal = push(feedbackRef);
+        
+        const proposalData = {
+            education: document.getElementById('edu').value,
+            infrastructure: document.getElementById('inf').value,
+            healthcare: document.getElementById('hel').value,
+            environment: document.getElementById('env').value,
+            timestamp: Date.now()
+        };
+
+        set(newProposal, proposalData)
+            .then(() => {
+                document.getElementById('status-msg').innerText = "✅ Proposal sent to city council!";
+                setTimeout(() => document.getElementById('status-msg').innerText = "", 3000);
+            })
+            .catch((err) => alert("Error: " + err.message));
+    };
+</script>
+
+</body>
+</html>
