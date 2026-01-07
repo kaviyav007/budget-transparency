@@ -140,38 +140,47 @@
     </main>
 
     <aside id="vote">
-        <div class="card">
-            <span class="badge badge-green">Citizen Input Portal</span>
-            <h3 style="margin-top:0; font-size: 1.5rem;">Voice Your Priorities</h3>
-            <p style="font-size: 0.9rem; color: var(--slate-600); margin-bottom: 30px;">Your responses are aggregated and presented at the monthly City Council Budget Hearing.</p>
+    <div class="card" id="vote_card">
+        <span class="badge badge-green">Citizen Input Portal</span>
+        <h3 style="margin-top:0;">Voice Your Priorities</h3>
+        
+        <div id="login_prompt" style="text-align: center; padding: 20px;">
+            <p style="font-size: 0.9rem; color: var(--slate-600); margin-bottom: 20px;">Sign in with Google to cast your verified vote.</p>
+            <button class="btn btn-primary" onclick="login()" style="width:100%">Sign in with Google</button>
+        </div>
+
+        <div id="voting_controls" style="display: none;">
+            <p id="user_welcome" style="font-size: 0.85rem; font-weight: 700; color: var(--brand); margin-bottom: 15px;"></p>
             
             <div class="input-group">
-                <label>Education <span id="val1" style="color:var(--brand)">25%</span></label>
+                <label>Education <span id="val1">25%</span></label>
                 <input type="range" id="edu_p" value="25" min="0" max="100" oninput="val1.innerText=this.value + '%'">
-                <p class="helper-text">School repairs, digital labs, and midday meals.</p>
             </div>
-
             <div class="input-group">
-                <label>Infrastructure <span id="val2" style="color:var(--brand)">25%</span></label>
+                <label>Infrastructure <span id="val2">25%</span></label>
                 <input type="range" id="inf_p" value="25" min="0" max="100" oninput="val2.innerText=this.value + '%'">
-                <p class="helper-text">Smart roads, bridge safety, and solar lighting.</p>
             </div>
-
             <div class="input-group">
-                <label>Healthcare <span id="val3" style="color:var(--brand)">25%</span></label>
+                <label>Healthcare <span id="val3">25%</span></label>
                 <input type="range" id="health_p" value="25" min="0" max="100" oninput="val3.innerText=this.value + '%'">
-                <p class="helper-text">Public clinics, vaccine drives, and oxygen plants.</p>
             </div>
-
             <div class="input-group">
-                <label>Sanitation <span id="val4" style="color:var(--brand)">25%</span></label>
+                <label>Sanitation <span id="val4">25%</span></label>
                 <input type="range" id="san_p" value="25" min="0" max="100" oninput="val4.innerText=this.value + '%'">
-                <p class="helper-text">Waste management, sewage, and clean water access.</p>
             </div>
 
-            <button class="btn btn-primary" style="width:100%; margin-top: 10px;" onclick="sendFeedback()">Submit Priority Vote</button>
+            <button class="btn btn-primary" style="width:100%;" onclick="sendFeedback()">Submit Priority Vote</button>
+            <button class="btn" style="width:100%; margin-top:10px; font-size: 0.75rem; color: var(--slate-600);" onclick="logout()">Sign Out</button>
         </div>
-    </aside>
+
+        <div id="already_voted" style="display: none; text-align: center; padding: 20px;">
+            <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
+            <h4>Vote Recorded</h4>
+            <p style="font-size: 0.85rem; color: var(--slate-600);">Your verified profile is securely stored. Each citizen is limited to one entry to ensure data integrity.</p>
+            <button class="btn" style="width:100%; margin-top:10px; font-size: 0.75rem;" onclick="logout()">Sign Out</button>
+        </div>
+    </div>
+</aside>
 </div>
 
 <section class="how-it-works" id="how-it-works">
@@ -294,7 +303,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAu4vi1x-tRVmHyKyp1JGfVfyBva7A91Jc",
@@ -305,48 +315,87 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
+    // --- AUTH LOGIC ---
+    window.login = () => signInWithPopup(auth, provider).catch(err => console.error(err));
+    window.logout = () => signOut(auth);
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            checkUserVote(user);
+        } else {
+            toggleUI('login_prompt');
+        }
+    });
+
+    async function checkUserVote(user) {
+        // Check if a vote exists at the path citizen_proposals/USER_ID
+        const snapshot = await get(ref(db, 'citizen_proposals/' + user.uid));
+        if (snapshot.exists()) {
+            toggleUI('already_voted');
+        } else {
+            document.getElementById('user_welcome').innerText = "Verified User: " + user.displayName;
+            toggleUI('voting_controls');
+        }
+    }
+
+    function toggleUI(sectionId) {
+        ['login_prompt', 'voting_controls', 'already_voted'].forEach(id => {
+            document.getElementById(id).style.display = (id === sectionId) ? 'block' : 'none';
+        });
+    }
+
+    // --- SUBMISSION LOGIC ---
+    window.sendFeedback = () => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const voteData = {
+            voter_name: user.displayName,
+            voter_email: user.email,
+            edu: document.getElementById('edu_p').value,
+            infra: document.getElementById('inf_p').value,
+            health: document.getElementById('health_p').value,
+            san: document.getElementById('san_p').value,
+            time: new Date().toISOString()
+        };
+
+        // We use set() instead of push() to tie the vote to the specific UID
+        set(ref(db, 'citizen_proposals/' + user.uid), voteData)
+            .then(() => {
+                alert("Verified Vote Submitted!");
+                checkUserVote(user);
+            })
+            .catch(err => alert("Error: " + err.message));
+    };
+
+    // --- CHART LOGIC ---
     google.charts.load('current', {'packages':['corechart']});
-
     onValue(ref(db, 'budgets/2024'), (snapshot) => {
         const val = snapshot.val();
         if (val) {
             google.charts.setOnLoadCallback(() => {
                 const data = google.visualization.arrayToDataTable([
                     ['Category', 'Amount'],
-                    ['Education', val.education],
-                    ['Healthcare', val.health],
-                    ['Infrastructure', val.roads],
-                    ['Sanitation', val.water]
+                    ['Education', val.education], ['Healthcare', val.health],
+                    ['Infrastructure', val.roads], ['Sanitation', val.water]
                 ]);
-
-                const chart = new google.visualization.PieChart(document.getElementById('main_chart'));
-                chart.draw(data, {
-                    pieHole: 0.6,
-                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444'],
+                new google.visualization.PieChart(document.getElementById('main_chart')).draw(data, {
+                    pieHole: 0.6, colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444'],
                     chartArea: { width: '90%', height: '80%' },
-                    legend: { position: 'bottom', textStyle: { fontName: 'Plus Jakarta Sans', fontSize: 14 } },
-                    backgroundColor: 'transparent',
-                    pieSliceBorderColor: 'none'
+                    legend: { position: 'bottom', textStyle: { fontName: 'Plus Jakarta Sans' } },
+                    backgroundColor: 'transparent'
                 });
             });
         }
     });
-
-    window.sendFeedback = () => {
-        const feedbackRef = ref(db, 'citizen_proposals');
-        push(feedbackRef, {
-            edu: document.getElementById('edu_p').value,
-            infra: document.getElementById('inf_p').value,
-            health: document.getElementById('health_p').value,
-            sanitation: document.getElementById('san_p').value,
-            time: new Date().toISOString()
-        }).then(() => alert("✅ Success! Your 4-point priority profile has been saved."));
-    };
 </script>
 
 </body>
 </html>
+
 
 
 
