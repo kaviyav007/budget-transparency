@@ -53,8 +53,15 @@
             max-width: 1300px; margin: -80px auto 60px; padding: 0 20px;
             display: grid; grid-template-columns: 1.8fr 1fr; gap: 32px;
         }
-        .card { background: white; border-radius: 24px; padding: 32px; border: 1px solid var(--slate-100); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .card { background: white; border-radius: 24px; padding: 32px; border: 1px solid var(--slate-100); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); position: relative; }
         
+        /* COUNTER BADGE */
+        .vote-counter {
+            position: absolute; top: 32px; right: 32px;
+            background: var(--brand-soft); color: var(--brand);
+            padding: 8px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 800;
+        }
+
         /* DATA TAGS */
         .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; }
         .badge-blue { background: var(--brand-soft); color: var(--brand); }
@@ -72,10 +79,9 @@
         .footer-grid ul { list-style: none; padding: 0; font-size: 0.9rem; color: #94a3b8; }
         .footer-grid ul li { margin-bottom: 10px; }
         .footer-grid ul li a { color: inherit; text-decoration: none; transition: 0.2s; }
-        .footer-grid ul li a:hover { color: white; }
         .footer-bottom { border-top: 1px solid #334155; margin-top: 40px; padding-top: 20px; font-size: 0.8rem; color: #94a3b8; text-align: center; }
 
-        @media (max-width: 1000px) { .dashboard-container { grid-template-columns: 1fr; margin-top: 20px; } .hero h1 { font-size: 2.5rem; } }
+        @media (max-width: 1000px) { .dashboard-container { grid-template-columns: 1fr; margin-top: 20px; } .hero h1 { font-size: 2.5rem; } .vote-counter { position: relative; top: 0; right: 0; margin-bottom: 20px; display: inline-block; } }
     </style>
 </head>
 <body>
@@ -91,7 +97,7 @@
 
 <section class="hero">
     <h1>Transparent Public <br><span style="color:var(--brand)">Budget Dashboard</span></h1>
-    <p>See exactly how your tax money is distributed across critical sectors. Our platform provides real-time insights into city expenditure and invites you to suggest future priorities.</p>
+    <p>See exactly how your tax money is distributed. Our platform provides real-time insights into city expenditure and invites you to suggest future priorities.</p>
     <div class="cta-group">
         <a href="#dashboard" class="btn btn-primary">View Live Dashboard</a>
         <a href="#vote" class="btn" style="background: white; border: 1px solid #e2e8f0;">Get Involved</a>
@@ -101,17 +107,14 @@
 <div class="dashboard-container" id="dashboard">
     <main>
         <div class="card">
+            <div class="vote-counter">🗳️ <span id="count_label">0</span> Votes Logged</div>
             <span class="badge badge-blue">Annual Expenditure Breakdown</span>
             <h2 style="margin-top:0; letter-spacing:-1px;">Resource Distribution (FY 2025)</h2>
             <p style="color: var(--slate-600); margin-bottom: 30px;">
-                <strong>Insight:</strong> For the current fiscal year, <strong>Education – Infrastructure Spending</strong> represents the largest share of the city's resources to ensure long-term literacy growth.
+                <strong>Insight:</strong> For the current fiscal year, <strong>Education</strong> represents the largest share of the city's resources.
             </p>
             
             <div id="main_chart" style="height: 500px; width: 100%;"></div>
-            
-            <div style="background: #fdf2f2; border-left: 4px solid var(--danger); padding: 15px; margin-top: 20px; border-radius: 4px;">
-                <p style="margin:0; font-size: 0.9rem; color: #991b1b;"><strong>Note:</strong> Sanitation and Water services saw a 5% increase compared to last year's report due to new pipeline projects.</p>
-            </div>
         </div>
     </main>
 
@@ -119,18 +122,16 @@
         <div class="card" style="position: sticky; top: 100px;">
             <span class="badge" style="background: #dcfce7; color: #166534;">Citizen Priorities</span>
             <h3 style="margin-top:0">Contribute Your Vision</h3>
-            <p style="font-size: 0.85rem; color: var(--slate-600); line-height: 1.5;">If you were managing the city treasury, which areas would you prioritize? Your inputs are collected into an <strong>Open Data</strong> pool for city council review.</p>
+            <p style="font-size: 0.85rem; color: var(--slate-600); line-height: 1.5;">Your inputs are collected into an <strong>Open Data</strong> pool for city council review.</p>
             
             <div class="input-group">
                 <label>Improve Public Schools <span id="val1" style="color:var(--brand)">25%</span></label>
                 <input type="range" id="edu_p" value="25" min="0" max="100" oninput="val1.innerText=this.value + '%'">
-                <p class="helper-text">Funding for teacher salaries, libraries, and school infrastructure.</p>
             </div>
 
             <div class="input-group">
                 <label>City Roads & Safety <span id="val2" style="color:var(--brand)">25%</span></label>
                 <input type="range" id="inf_p" value="25" min="0" max="100" oninput="val2.innerText=this.value + '%'">
-                <p class="helper-text">Pothole repairs, public lighting, and sidewalk expansion.</p>
             </div>
 
             <button class="btn btn-primary" style="width:100%" onclick="sendFeedback()">Submit Priority Vote</button>
@@ -142,7 +143,7 @@
     <div class="footer-grid">
         <div>
             <h3 class="logo" style="color:white; margin-bottom: 1rem;">CivicSpend</h3>
-            <p style="font-size: 0.9rem; color: #94a3b8;">An open-source project dedicated to making municipal financial data accessible to every citizen.</p>
+            <p style="font-size: 0.9rem; color: #94a3b8;">Open-source project for municipal financial data transparency.</p>
         </div>
         <div>
             <h4>Project Links</h4>
@@ -162,19 +163,16 @@
         </div>
         <div>
             <h4>Disclaimer</h4>
-            <p style="font-size: 0.8rem; color: #64748b;">This platform uses simulated data for demonstration purposes as part of the 2026 CivicTech Hackathon.</p>
+            <p style="font-size: 0.8rem; color: #64748b;">Simulated data for demonstration purposes.</p>
         </div>
     </div>
-    <div class="footer-bottom">
-        &copy; 2026 CivicSpend. Built with Google Firebase & Google Charts.
-    </div>
+    <div class="footer-bottom">&copy; 2026 CivicSpend. Built with Google Firebase.</div>
 </footer>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // PROJECT CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyAu4vi1x-tRVmHyKyp1JGfVfyBva7A91Jc",
         databaseURL: "https://local-budget-transparency-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -187,48 +185,48 @@
 
     google.charts.load('current', {'packages':['corechart']});
 
-    // LOAD DATA AND RENDER CHART
+    // 1. CHART DATA LISTENER
     onValue(ref(db, 'budgets/2024'), (snapshot) => {
         const val = snapshot.val();
         if (val) {
             google.charts.setOnLoadCallback(() => {
                 const data = google.visualization.arrayToDataTable([
-                    ['Category', 'Budget (Millions)', { role: 'tooltip' }],
-                    ['Education', val.education, 'Dedicated to K-12 public education'],
-                    ['Healthcare', val.health, 'Supports local clinics and emergency response'],
-                    ['Infrastructure', val.roads, 'Maintenance of city highways and pedestrian safety'],
-                    ['Sanitation', val.water, 'Clean water supply and waste management']
+                    ['Category', 'Budget'],
+                    ['Education', val.education],
+                    ['Healthcare', val.health],
+                    ['Infrastructure', val.roads],
+                    ['Sanitation', val.water]
                 ]);
-
-                const options = {
+                const chart = new google.visualization.PieChart(document.getElementById('main_chart'));
+                chart.draw(data, {
                     pieHole: 0.55,
                     colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444'],
                     chartArea: { width: '90%', height: '80%' },
-                    legend: { position: 'bottom', textStyle: { fontName: 'Plus Jakarta Sans', fontSize: 13, color: '#475569' } },
-                    backgroundColor: 'transparent',
-                    pieSliceBorderColor: 'none',
-                    tooltip: { textStyle: { fontName: 'Plus Jakarta Sans', fontSize: 12 }, showColorCode: true }
-                };
-
-                const chart = new google.visualization.PieChart(document.getElementById('main_chart'));
-                chart.draw(data, options);
+                    legend: { position: 'bottom' },
+                    backgroundColor: 'transparent'
+                });
             });
         }
     });
 
-    // SUBMIT FEEDBACK
+    // 2. LIVE VOTE COUNTER LISTENER
+    onValue(ref(db, 'citizen_proposals'), (snapshot) => {
+        const count = snapshot.numChildren();
+        document.getElementById('count_label').innerText = count;
+    });
+
+    // 3. SUBMIT FEEDBACK
     window.sendFeedback = () => {
-        const feedbackRef = ref(db, 'citizen_proposals');
-        push(feedbackRef, {
-            education_priority: document.getElementById('edu_p').value,
-            infrastructure_priority: document.getElementById('inf_p').value,
-            submission_time: new Date().toISOString()
-        }).then(() => alert("✅ Success! Your priority has been sent to the city treasury feedback portal."));
+        push(ref(db, 'citizen_proposals'), {
+            edu: document.getElementById('edu_p').value,
+            infra: document.getElementById('inf_p').value,
+            time: new Date().toISOString()
+        }).then(() => alert("✅ Success! Your priority has been sent."));
     };
 </script>
-
 </body>
 </html>
+
 
 
 
