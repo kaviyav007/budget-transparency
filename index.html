@@ -144,43 +144,34 @@
         <span class="badge badge-green">Citizen Input Portal</span>
         <h3 style="margin-top:0;">Voice Your Priorities</h3>
         
-        <div id="login_prompt" style="text-align: center; padding: 20px;">
-            <p style="font-size: 0.9rem; color: var(--slate-600); margin-bottom: 20px;">Sign in with Google to cast your verified vote.</p>
-            <button class="btn btn-primary" onclick="login()" style="width:100%">Sign in with Google</button>
+        <div id="login_prompt" style="text-align: center; padding: 10px;">
+            <p style="font-size: 0.9rem; color: var(--slate-600);">Verify your identity via SMS.</p>
+            
+            <div id="phone_input_container">
+                <input type="tel" id="phoneNumber" placeholder="+91 98765 43210" style="width:100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
+                <div id="recaptcha-container"></div> <button class="btn btn-primary" onclick="sendOTP()" style="width:100%; margin-top:10px;">Send OTP</button>
+            </div>
+
+            <div id="otp_input_container" style="display:none; margin-top: 15px;">
+                <input type="text" id="verificationCode" placeholder="Enter 6-digit OTP" style="width:100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
+                <button class="btn btn-primary" onclick="verifyOTP()" style="width:100%">Verify & Login</button>
+            </div>
         </div>
 
         <div id="voting_controls" style="display: none;">
             <p id="user_welcome" style="font-size: 0.85rem; font-weight: 700; color: var(--brand); margin-bottom: 15px;"></p>
-            
-            <div class="input-group">
-                <label>Education <span id="val1">25%</span></label>
-                <input type="range" id="edu_p" value="25" min="0" max="100" oninput="val1.innerText=this.value + '%'">
-            </div>
-            <div class="input-group">
-                <label>Infrastructure <span id="val2">25%</span></label>
-                <input type="range" id="inf_p" value="25" min="0" max="100" oninput="val2.innerText=this.value + '%'">
-            </div>
-            <div class="input-group">
-                <label>Healthcare <span id="val3">25%</span></label>
-                <input type="range" id="health_p" value="25" min="0" max="100" oninput="val3.innerText=this.value + '%'">
-            </div>
-            <div class="input-group">
-                <label>Sanitation <span id="val4">25%</span></label>
-                <input type="range" id="san_p" value="25" min="0" max="100" oninput="val4.innerText=this.value + '%'">
-            </div>
-
             <button class="btn btn-primary" style="width:100%;" onclick="sendFeedback()">Submit Priority Vote</button>
             <button class="btn" style="width:100%; margin-top:10px; font-size: 0.75rem; color: var(--slate-600);" onclick="logout()">Sign Out</button>
         </div>
 
         <div id="already_voted" style="display: none; text-align: center; padding: 20px;">
             <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
-            <h4>Vote Recorded</h4>
-            <p style="font-size: 0.85rem; color: var(--slate-600);">Your verified profile is securely stored. Each citizen is limited to one entry to ensure data integrity.</p>
+            <h4>Identity Verified</h4>
+            <p style="font-size: 0.85rem; color: var(--slate-600);">Your vote is securely recorded against your phone number.</p>
             <button class="btn" style="width:100%; margin-top:10px; font-size: 0.75rem;" onclick="logout()">Sign Out</button>
         </div>
     </div>
-</aside>
+</aside>>
 </div>
 
 <section class="how-it-works" id="how-it-works">
@@ -304,22 +295,45 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyAu4vi1x-tRVmHyKyp1JGfVfyBva7A91Jc",
-        databaseURL: "https://local-budget-transparency-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "local-budget-transparency",
-        appId: "1:781973364320:web:447545367876a47012444b" 
+        apiKey: "YOUR_API_KEY",
+        databaseURL: "YOUR_DATABASE_URL",
+        projectId: "YOUR_PROJECT_ID",
+        appId: "YOUR_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
 
-    // --- AUTH LOGIC ---
-    window.login = () => signInWithPopup(auth, provider).catch(err => console.error(err));
+    // Initialize CAPTCHA
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible'
+    });
+
+    // --- PHONE AUTH LOGIC ---
+    window.sendOTP = () => {
+        const number = document.getElementById('phoneNumber').value;
+        const appVerifier = window.recaptchaVerifier;
+
+        signInWithPhoneNumber(auth, number, appVerifier)
+            .then((confirmationResult) => {
+                window.confirmationResult = confirmationResult;
+                document.getElementById('phone_input_container').style.display = 'none';
+                document.getElementById('otp_input_container').style.display = 'block';
+            }).catch((error) => alert("Error: " + error.message));
+    };
+
+    window.verifyOTP = () => {
+        const code = document.getElementById('verificationCode').value;
+        window.confirmationResult.confirm(code)
+            .then((result) => {
+                console.log("User signed in!");
+            }).catch((error) => alert("Invalid OTP. Try again."));
+    };
+
     window.logout = () => signOut(auth);
 
     onAuthStateChanged(auth, (user) => {
@@ -331,12 +345,11 @@
     });
 
     async function checkUserVote(user) {
-        // Check if a vote exists at the path citizen_proposals/USER_ID
         const snapshot = await get(ref(db, 'citizen_proposals/' + user.uid));
         if (snapshot.exists()) {
             toggleUI('already_voted');
         } else {
-            document.getElementById('user_welcome').innerText = "Verified User: " + user.displayName;
+            document.getElementById('user_welcome').innerText = "Verified: " + user.phoneNumber;
             toggleUI('voting_controls');
         }
     }
@@ -350,11 +363,8 @@
     // --- SUBMISSION LOGIC ---
     window.sendFeedback = () => {
         const user = auth.currentUser;
-        if (!user) return;
-
         const voteData = {
-            voter_name: user.displayName,
-            voter_email: user.email,
+            phone: user.phoneNumber,
             edu: document.getElementById('edu_p').value,
             infra: document.getElementById('inf_p').value,
             health: document.getElementById('health_p').value,
@@ -362,39 +372,19 @@
             time: new Date().toISOString()
         };
 
-        // We use set() instead of push() to tie the vote to the specific UID
         set(ref(db, 'citizen_proposals/' + user.uid), voteData)
             .then(() => {
                 alert("Verified Vote Submitted!");
                 checkUserVote(user);
-            })
-            .catch(err => alert("Error: " + err.message));
+            });
     };
 
-    // --- CHART LOGIC ---
-    google.charts.load('current', {'packages':['corechart']});
-    onValue(ref(db, 'budgets/2024'), (snapshot) => {
-        const val = snapshot.val();
-        if (val) {
-            google.charts.setOnLoadCallback(() => {
-                const data = google.visualization.arrayToDataTable([
-                    ['Category', 'Amount'],
-                    ['Education', val.education], ['Healthcare', val.health],
-                    ['Infrastructure', val.roads], ['Sanitation', val.water]
-                ]);
-                new google.visualization.PieChart(document.getElementById('main_chart')).draw(data, {
-                    pieHole: 0.6, colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444'],
-                    chartArea: { width: '90%', height: '80%' },
-                    legend: { position: 'bottom', textStyle: { fontName: 'Plus Jakarta Sans' } },
-                    backgroundColor: 'transparent'
-                });
-            });
-        }
-    });
+    // --- CHART LOGIC (Keep your current Chart code here) ---
 </script>
 
 </body>
 </html>
+
 
 
 
