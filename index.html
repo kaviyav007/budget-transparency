@@ -80,6 +80,23 @@
         .footer-bottom { border-top: 1px solid #334155; margin-top: 60px; padding-top: 30px; font-size: 0.85rem; color: #94a3b8; text-align: center; }
 
         @media (max-width: 1000px) { .dashboard-container { grid-template-columns: 1fr; } .hero h1 { font-size: 2.8rem; } }
+        /* FAQ SECTION */
+.faq-section { padding: 100px 10%; background: #f8fafc; }
+.accordion { max-width: 800px; margin: 0 auto; }
+.accordion-item { background: white; margin-bottom: 15px; border-radius: 15px; border: 1px solid #e2e8f0; overflow: hidden; }
+.accordion-header { padding: 20px 25px; cursor: pointer; display: flex; justify-content: space-between; font-weight: 700; transition: 0.3s; }
+.accordion-header:hover { background: var(--brand-soft); }
+.accordion-content { padding: 0 25px 20px; color: var(--slate-600); font-size: 0.95rem; line-height: 1.6; }
+
+/* NEWS SECTION */
+.news-section { padding: 100px 10%; background: white; }
+.news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+.news-card { border-radius: 20px; overflow: hidden; border: 1px solid #f1f5f9; transition: 0.3s; }
+.news-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+.news-img { width: 100%; height: 180px; background: #e2e8f0; object-fit: cover; }
+.news-body { padding: 20px; }
+.news-body h4 { margin: 0 0 10px; font-size: 1.1rem; }
+.news-body p { font-size: 0.85rem; color: var(--slate-600); margin: 0; }
     </style>
 </head>
 <body>
@@ -188,6 +205,60 @@
         <a href="#dashboard" class="btn btn-primary">Check the Live Audit</a>
     </div>
 </section>
+<section class="news-section">
+    <div class="section-title">
+        <span class="badge badge-blue">Real World Impact</span>
+        <h2>Recent Infrastructure Projects</h2>
+        <p style="color:var(--slate-600); max-width:600px; margin: 15px auto;">See how your tax money is being transformed into physical community assets.</p>
+    </div>
+    <div class="news-grid">
+        <div class="news-card">
+            <div class="news-img" style="background: linear-gradient(45deg, #2563eb, #60a5fa);"></div>
+            <div class="news-body">
+                <span style="font-size: 0.7rem; color: var(--brand); font-weight: 800;">COMPLETED</span>
+                <h4>West Side Smart School</h4>
+                <p>New digital literacy wing added to the primary school serving 500+ students.</p>
+            </div>
+        </div>
+        <div class="news-card">
+            <div class="news-img" style="background: linear-gradient(45deg, #10b981, #34d399);"></div>
+            <div class="news-body">
+                <span style="font-size: 0.7rem; color: var(--success); font-weight: 800;">IN PROGRESS</span>
+                <h4>Green-Route Pipeline</h4>
+                <p>Upgrading 5km of water pipelines to reduce leakages by 40% in the central district.</p>
+            </div>
+        </div>
+        <div class="news-card">
+            <div class="news-img" style="background: linear-gradient(45deg, #f59e0b, #fbbf24);"></div>
+            <div class="news-body">
+                <span style="font-size: 0.7rem; color: #b45309; font-weight: 800;">PLANNING</span>
+                <h4>Central Park Lighting</h4>
+                <p>Installing 200+ solar-powered LED lamps for enhanced nighttime safety.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="faq-section">
+    <div class="section-title">
+        <span class="badge badge-blue">Resources</span>
+        <h2>Common Questions</h2>
+    </div>
+    <div class="accordion">
+        <div class="accordion-item">
+            <div class="accordion-header">Where does this data come from? <span>+</span></div>
+            <div class="accordion-content">Our data is fetched from the Open Data portal of the Municipal Corporation. It is updated once the quarterly audits are finalized.</div>
+        </div>
+        <div class="accordion-item">
+            <div class="accordion-header">How is my priority vote used? <span>+</span></div>
+            <div class="accordion-content">Votes are aggregated into a "Public Sentiment Report" which is shared with the City Council before the next annual budget planning meeting.</div>
+        </div>
+        <div class="accordion-item">
+            <div class="accordion-header">Is this platform official? <span>+</span></div>
+            <div class="accordion-content">Currently, this is a transparency initiative built by civic-tech volunteers. We aim to integrate it officially with government systems.</div>
+        </div>
+    </div>
+</section>
 
 <footer id="about">
     <div class="footer-grid">
@@ -276,6 +347,7 @@
 
 </body>
 </html>
+
 
 
 
