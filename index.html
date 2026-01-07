@@ -3,106 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CivicSpend Pro: Transparency & Action</title>
+    <title>CivicSpend | Transparent Public Budget Dashboard</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    
     <style>
-        :root { --google-blue: #4285F4; --google-green: #34A853; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f8f9fa; }
-        header { background: white; padding: 15px 5%; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; }
-        main { display: grid; grid-template-columns: 1fr 380px; gap: 20px; padding: 20px 5%; }
-        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-        .slider-group { margin-bottom: 15px; }
-        input[type=range] { width: 100%; accent-color: var(--google-blue); }
-        button { width: 100%; padding: 12px; background: var(--google-green); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        #feedback-list { margin-top: 20px; max-height: 300px; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; }
-        .feedback-item { font-size: 0.8rem; padding: 8px; border-bottom: 1px solid #f1f1f1; color: #555; }
-        @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+        :root {
+            --primary: #1a73e8; /* Civic Blue */
+            --secondary: #34a853; /* Success Green */
+            --dark: #202124;
+            --light: #f8f9fa;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            color: var(--dark);
+            background-color: #ffffff;
+            line-height: 1.6;
+        }
+
+        /* 1. NAVIGATION BAR */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background: white;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); }
+        .nav-links a { margin-left: 20px; text-decoration: none; color: var(--dark); font-size: 0.9rem; font-weight: 600; }
+
+        /* 2. HERO SECTION */
+        .hero {
+            text-align: center;
+            padding: 80px 10%;
+            background: linear-gradient(135deg, #f1f7ff 0%, #ffffff 100%);
+        }
+        .hero h1 { font-size: 3rem; margin-bottom: 10px; color: var(--dark); }
+        .hero p { font-size: 1.2rem; color: #5f6368; max-width: 700px; margin: 0 auto 30px; }
+        .cta-btn { 
+            background: var(--primary); color: white; padding: 15px 30px; 
+            border-radius: 30px; text-decoration: none; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+        }
+
+        /* 3. DASHBOARD LAYOUT */
+        .container { display: grid; grid-template-columns: 1fr 350px; gap: 30px; padding: 40px 5%; max-width: 1200px; margin: 0 auto; }
+        .card { background: white; border-radius: 16px; padding: 25px; border: 1px solid #e0e0e0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        
+        /* 4. DATA VIZ & NARRATIVE */
+        .narrative { margin-bottom: 20px; }
+        .narrative h2 { margin-top: 0; }
+        .chart-desc { font-size: 0.95rem; color: #666; background: #eef4ff; padding: 15px; border-left: 4px solid var(--primary); border-radius: 4px; }
+
+        /* SLIDERS & INTERACTIVITY */
+        .slider-box { margin-bottom: 20px; }
+        input[type=range] { width: 100%; margin: 10px 0; accent-color: var(--primary); }
+        .submit-btn { width: 100%; padding: 12px; background: var(--secondary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* FOOTER */
+        footer { background: var(--dark); color: white; padding: 40px 5%; text-align: center; margin-top: 50px; }
+        .footer-links a { color: #ccc; margin: 0 10px; font-size: 0.8rem; }
+
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-<header>
-    <strong>🏙️ CivicSpend Pro</strong>
-    <span style="color: var(--google-green)">● Live Database Connected</span>
-</header>
+<nav>
+    <div class="logo">🏙️ CivicSpend</div>
+    <div class="nav-links">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#contribute">Contribute</a>
+        <a href="https://github.com/YOUR_USERNAME">GitHub</a>
+    </div>
+</nav>
 
-<main>
-    <section>
+<section class="hero">
+    <h1>Transparent Public Budgeting</h1>
+    <p>We believe citizens should know exactly where their tax money goes. Explore live spending data and submit your priorities for 2025.</p>
+    <a href="#dashboard" class="cta-btn">View Live Dashboard</a>
+</section>
+
+<div class="container" id="dashboard">
+    <main>
         <div class="card">
-            <h2>Current City Spending (2024)</h2>
+            <div class="narrative">
+                <h2>Annual Expenditure Breakdown</h2>
+                <p class="chart-desc">
+                    <strong>Insight:</strong> Based on live data from the City Treasury, 
+                    <span style="color:var(--primary); font-weight:bold;">Education</span> 
+                    remains our largest investment this year.
+                </p>
+            </div>
             <div id="chart_div" style="height: 400px;"></div>
         </div>
-        
-        <div class="card" style="margin-top: 20px;">
-            <h2>Community Voice Feed</h2>
-            <div id="feedback-list">Waiting for community input...</div>
-        </div>
-    </section>
+    </main>
 
-    <aside class="card">
-        <h2>Your 2025 Proposal</h2>
-        <p style="font-size: 0.9rem; color: #666;">Adjust sliders to show where you want money spent.</p>
-        <div class="slider-group">
-            <label>Education: <span id="v1">25</span>%</label>
-            <input type="range" id="edu" value="25" oninput="document.getElementById('v1').innerText=this.value">
+    <aside id="contribute">
+        <div class="card">
+            <h3>Voice Your Priority</h3>
+            <p style="font-size:0.85rem;">How would you distribute the next budget? Your input goes directly to our open-data feedback loop.</p>
+            
+            <div class="slider-box">
+                <label>Improve Public Schools: <b id="val1">25</b>%</label>
+                <input type="range" id="edu_p" value="25" min="0" max="100" oninput="val1.innerText=this.value">
+            </div>
+
+            <div class="slider-box">
+                <label>Roads & Infrastructure: <b id="val2">25</b>%</label>
+                <input type="range" id="inf_p" value="25" min="0" max="100" oninput="val2.innerText=this.value">
+            </div>
+
+            <button class="submit-btn" onclick="sendFeedback()">Submit Recommendation</button>
         </div>
-        <div class="slider-group">
-            <label>Infrastructure: <span id="v2">25</span>%</label>
-            <input type="range" id="inf" value="25" oninput="document.getElementById('v2').innerText=this.value">
-        </div>
-        <button onclick="submitData()">Submit My Priority</button>
     </aside>
-</main>
+</div>
+
+<footer>
+    <p>&copy; 2024 CivicSpend Project | Built for Transparency</p>
+    <div class="footer-links">
+        <a href="#">Privacy Policy</a> | <a href="#">Open Data License</a> | <a href="#">Official Documentation</a>
+    </div>
+    <p style="font-size: 10px; margin-top: 20px; color: #777;">Disclaimer: This is a hackathon project using simulated city financial data.</p>
+</footer>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, push, set, limitToLast, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     // PASTE YOUR CONFIG HERE
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
+        apiKey: "AIzaSyAu4vi1x-tRVmHyKyp1JGfVfyBva7A91Jc",
         databaseURL: "https://local-budget-transparency-default-rtdb.asia-southeast1.firebasedatabase.app",
         projectId: "local-budget-transparency",
+        appId: "1:781973364320:web:566b9e7f6a6a51800ead05"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // 1. LIVE CHART
+    // Load Charts
     google.charts.load('current', {'packages':['corechart']});
-    onValue(ref(db, 'budgets/2024'), (s) => {
-        const d = s.val();
+
+    // PULL DATA FROM FIREBASE
+    onValue(ref(db, 'budgets/2024'), (snapshot) => {
+        const dataValues = snapshot.val();
         google.charts.setOnLoadCallback(() => {
             const dataTable = google.visualization.arrayToDataTable([
-                ['Task', 'Budget'], ...Object.entries(d)
+                ['Category', 'Budget Amount'],
+                ['Education (Schools)', dataValues.education],
+                ['Health (Hospitals)', dataValues.health],
+                ['Infrastructure (Roads)', dataValues.roads],
+                ['Water & Sanitation', dataValues.water]
             ]);
-            new google.visualization.PieChart(document.getElementById('chart_div')).draw(dataTable, {pieHole: 0.4});
+
+            const options = {
+                pieHole: 0.4,
+                colors: ['#1a73e8', '#34a853', '#fbbc04', '#ea4335'],
+                legend: { position: 'bottom' },
+                chartArea: { width: '90%', height: '80%' }
+            };
+
+            const chart = new google.visualization.PieChart(document.getElementById('chart_div'));
+            chart.draw(dataTable, options);
         });
     });
 
-    // 2. LIVE FEED FEATURE
-    const feedbackRef = query(ref(db, 'citizen_proposals'), limitToLast(5));
-    onValue(feedbackRef, (snapshot) => {
-        const list = document.getElementById('feedback-list');
-        list.innerHTML = "";
-        snapshot.forEach((child) => {
-            const val = child.val();
-            const div = document.createElement('div');
-            div.className = 'feedback-item';
-            div.innerText = `📢 A citizen suggested: Edu ${val.education}%, Infra ${val.infrastructure}%`;
-            list.prepend(div);
-        });
-    });
-
-    // 3. SUBMIT FUNCTION
-    window.submitData = () => {
-        const newPostRef = push(ref(db, 'citizen_proposals'));
-        set(newPostRef, {
-            education: document.getElementById('edu').value,
-            infrastructure: document.getElementById('inf').value,
-            timestamp: Date.now()
-        }).then(() => alert("Thank you for your voice!"));
+    // SEND FEEDBACK TO FIREBASE
+    window.sendFeedback = () => {
+        const feedbackRef = ref(db, 'citizen_proposals');
+        const newFeedback = push(feedbackRef);
+        set(newFeedback, {
+            school_priority: document.getElementById('edu_p').value,
+            road_priority: document.getElementById('inf_p').value,
+            time: Date.now()
+        }).then(() => alert("Success! Your priority has been recorded in our live database."));
     };
 </script>
+
 </body>
 </html>
+
