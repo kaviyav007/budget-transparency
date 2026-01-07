@@ -68,6 +68,11 @@
         /* FOOTER */
         footer { background: var(--slate-900); color: white; padding: 60px 10%; margin-top: 100px; }
         .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; }
+        .footer-grid h4 { margin-bottom: 1.2rem; font-weight: 700; }
+        .footer-grid ul { list-style: none; padding: 0; font-size: 0.9rem; color: #94a3b8; }
+        .footer-grid ul li { margin-bottom: 10px; }
+        .footer-grid ul li a { color: inherit; text-decoration: none; transition: 0.2s; }
+        .footer-grid ul li a:hover { color: white; }
         .footer-bottom { border-top: 1px solid #334155; margin-top: 40px; padding-top: 20px; font-size: 0.8rem; color: #94a3b8; text-align: center; }
 
         @media (max-width: 1000px) { .dashboard-container { grid-template-columns: 1fr; margin-top: 20px; } .hero h1 { font-size: 2.5rem; } }
@@ -136,15 +141,23 @@
 <footer id="about">
     <div class="footer-grid">
         <div>
-            <h3 class="logo" style="color:white">CivicSpend</h3>
+            <h3 class="logo" style="color:white; margin-bottom: 1rem;">CivicSpend</h3>
             <p style="font-size: 0.9rem; color: #94a3b8;">An open-source project dedicated to making municipal financial data accessible to every citizen.</p>
         </div>
         <div>
-            <h4 style="margin-bottom: 1rem;">Project Links</h4>
-            <ul style="list-style: none; padding: 0; font-size: 0.9rem; color: #94a3b8;">
-                <li style="margin-bottom: 8px;"><a href="#" style="color:inherit; text-decoration:none;">Documentation</a></li>
-                <li style="margin-bottom: 8px;"><a href="#" style="color:inherit; text-decoration:none;">City Data API</a></li>
-                <li style="margin-bottom: 8px;"><a href="#" style="color:inherit; text-decoration:none;">MIT License</a></li>
+            <h4>Project Links</h4>
+            <ul>
+                <li><a href="#">Documentation</a></li>
+                <li><a href="#">City Data API</a></li>
+                <li><a href="#">MIT License</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Contact Us</h4>
+            <ul>
+                <li>📧 support@civicspend.gov</li>
+                <li>📍 Innovation Hub, City Hall</li>
+                <li>📞 +91 44 2345 6789</li>
             </ul>
         </div>
         <div>
@@ -159,14 +172,14 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     // PROJECT CONFIG
     const firebaseConfig = {
         apiKey: "AIzaSyAu4vi1x-tRVmHyKyp1JGfVfyBva7A91Jc",
         databaseURL: "https://local-budget-transparency-default-rtdb.asia-southeast1.firebasedatabase.app",
         projectId: "local-budget-transparency",
-        appId: "1:781973364320:web:566b9e7f6a6a51800ead05" 
+        appId: "1:781973364320:web:447545367876a47012444b" 
     };
 
     const app = initializeApp(firebaseConfig);
@@ -177,28 +190,30 @@
     // LOAD DATA AND RENDER CHART
     onValue(ref(db, 'budgets/2024'), (snapshot) => {
         const val = snapshot.val();
-        google.charts.setOnLoadCallback(() => {
-            const data = google.visualization.arrayToDataTable([
-                ['Category', 'Budget (Millions)', { role: 'tooltip' }],
-                ['Education – Schools', val.education, 'Dedicated to K-12 public education and adult literacy programs'],
-                ['Healthcare – Hospitals', val.health, 'Supports local clinics, emergency response, and public medical supplies'],
-                ['Infrastructure – Roads', val.roads, 'Maintenance of city highways, public bridges, and pedestrian safety'],
-                ['Sanitation – Water', val.water, 'Clean water supply, waste management, and environmental protection']
-            ]);
+        if (val) {
+            google.charts.setOnLoadCallback(() => {
+                const data = google.visualization.arrayToDataTable([
+                    ['Category', 'Budget (Millions)', { role: 'tooltip' }],
+                    ['Education', val.education, 'Dedicated to K-12 public education'],
+                    ['Healthcare', val.health, 'Supports local clinics and emergency response'],
+                    ['Infrastructure', val.roads, 'Maintenance of city highways and pedestrian safety'],
+                    ['Sanitation', val.water, 'Clean water supply and waste management']
+                ]);
 
-            const options = {
-                pieHole: 0.55,
-                colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444'],
-                chartArea: { width: '90%', height: '80%' },
-                legend: { position: 'bottom', textStyle: { fontName: 'Plus Jakarta Sans', fontSize: 13, color: '#475569' } },
-                backgroundColor: 'transparent',
-                pieSliceBorderColor: 'none',
-                tooltip: { textStyle: { fontName: 'Plus Jakarta Sans', fontSize: 12 }, showColorCode: true }
-            };
+                const options = {
+                    pieHole: 0.55,
+                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444'],
+                    chartArea: { width: '90%', height: '80%' },
+                    legend: { position: 'bottom', textStyle: { fontName: 'Plus Jakarta Sans', fontSize: 13, color: '#475569' } },
+                    backgroundColor: 'transparent',
+                    pieSliceBorderColor: 'none',
+                    tooltip: { textStyle: { fontName: 'Plus Jakarta Sans', fontSize: 12 }, showColorCode: true }
+                };
 
-            const chart = new google.visualization.PieChart(document.getElementById('main_chart'));
-            chart.draw(data, options);
-        });
+                const chart = new google.visualization.PieChart(document.getElementById('main_chart'));
+                chart.draw(data, options);
+            });
+        }
     });
 
     // SUBMIT FEEDBACK
@@ -214,6 +229,7 @@
 
 </body>
 </html>
+
 
 
 
