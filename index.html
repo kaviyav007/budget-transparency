@@ -171,7 +171,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, onValue, push, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyAu4vi1x-tRVmHyKyp1JGfVfyBva7A91Jc",
@@ -185,17 +185,31 @@
 
     google.charts.load('current', {'packages':['corechart']});
 
-    // 1. CHART DATA LISTENER
+    // 1. LIVE VOTE COUNTER (The Fix)
+    const countRef = ref(db, 'citizen_proposals');
+    onValue(countRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const count = snapshot.numChildren();
+            document.getElementById('count_label').innerText = count;
+            console.log("Current Vote Count:", count);
+        } else {
+            document.getElementById('count_label').innerText = "0";
+        }
+    }, (error) => {
+        console.error("Database Error:", error);
+    });
+
+    // 2. CHART DATA
     onValue(ref(db, 'budgets/2024'), (snapshot) => {
         const val = snapshot.val();
         if (val) {
             google.charts.setOnLoadCallback(() => {
                 const data = google.visualization.arrayToDataTable([
                     ['Category', 'Budget'],
-                    ['Education', val.education],
-                    ['Healthcare', val.health],
-                    ['Infrastructure', val.roads],
-                    ['Sanitation', val.water]
+                    ['Education', val.education || 0],
+                    ['Healthcare', val.health || 0],
+                    ['Infrastructure', val.roads || 0],
+                    ['Sanitation', val.water || 0]
                 ]);
                 const chart = new google.visualization.PieChart(document.getElementById('main_chart'));
                 chart.draw(data, {
@@ -209,23 +223,25 @@
         }
     });
 
-    // 2. LIVE VOTE COUNTER LISTENER
-    onValue(ref(db, 'citizen_proposals'), (snapshot) => {
-        const count = snapshot.numChildren();
-        document.getElementById('count_label').innerText = count;
-    });
-
-    // 3. SUBMIT FEEDBACK
+    // 3. SUBMIT FUNCTION
     window.sendFeedback = () => {
+        const eduVal = document.getElementById('edu_p').value;
+        const infVal = document.getElementById('inf_p').value;
+        
         push(ref(db, 'citizen_proposals'), {
-            edu: document.getElementById('edu_p').value,
-            infra: document.getElementById('inf_p').value,
-            time: new Date().toISOString()
-        }).then(() => alert("✅ Success! Your priority has been sent."));
+            edu: eduVal,
+            infra: infVal,
+            timestamp: Date.now()
+        }).then(() => {
+            alert("✅ Priority Submitted! Watch the counter increase.");
+        }).catch((err) => {
+            alert("❌ Database Error: " + err.message);
+        });
     };
 </script>
 </body>
 </html>
+
 
 
 
