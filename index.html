@@ -93,7 +93,7 @@
 .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
 .news-card { border-radius: 20px; overflow: hidden; border: 1px solid #f1f5f9; transition: 0.3s; }
 .news-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-.news-img { width: 100%; height: 180px; background: #e2e8f0; object-fit: cover; }
+.news-img { width: 100%; height: 180px; object-fit: cover; display: block; }
 .news-body { padding: 20px; }
 .news-body h4 { margin: 0 0 10px; font-size: 1.1rem; }
 .news-body p { font-size: 0.85rem; color: var(--slate-600); margin: 0; }
@@ -228,23 +228,25 @@
     </div>
     <div class="news-grid">
         <div class="news-card">
-            <div class="news-img" style="background: linear-gradient(45deg, #2563eb, #60a5fa);"></div>
+            <img src="https://tse1.mm.bing.net/th/id/OIP.tQ0T4GzTbitBHJ0rOOSw_AHaEg?rs=1&pid=ImgDetMain&o=7&rm=3" alt="West Side Smart School" class="news-img">
             <div class="news-body">
                 <span style="font-size: 0.7rem; color: var(--brand); font-weight: 800;">COMPLETED</span>
                 <h4>West Side Smart School</h4>
                 <p>New digital literacy wing added to the primary school serving 500+ students.</p>
             </div>
         </div>
+
         <div class="news-card">
-            <div class="news-img" style="background: linear-gradient(45deg, #10b981, #34d399);"></div>
+            <img src="https://pgjonline.com/media/5704/green-grass-pipeline-environment-800.jpg" alt="Green-Route Pipeline" class="news-img">
             <div class="news-body">
                 <span style="font-size: 0.7rem; color: var(--success); font-weight: 800;">IN PROGRESS</span>
                 <h4>Green-Route Pipeline</h4>
                 <p>Upgrading 5km of water pipelines to reduce leakages by 40% in the central district.</p>
             </div>
         </div>
+
         <div class="news-card">
-            <div class="news-img" style="background: linear-gradient(45deg, #f59e0b, #fbbf24);"></div>
+            <img src="https://tse4.mm.bing.net/th/id/OIP.8UhPpxmqomqhDBfV2GMVBgHaE8?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Central Park Lighting" class="news-img">
             <div class="news-body">
                 <span style="font-size: 0.7rem; color: #b45309; font-weight: 800;">PLANNING</span>
                 <h4>Central Park Lighting</h4>
@@ -429,6 +431,7 @@
 
 </body>
 </html>
+
 
 
 
