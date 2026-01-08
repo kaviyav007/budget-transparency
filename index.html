@@ -25,7 +25,29 @@
             scroll-behavior: smooth;
         }
 
-        /* NAVIGATION & BRANDING */
+        /* GATEKEEPER STYLES */
+        #gatekeeper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--slate-900); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; text-align: center;
+        }
+        .gate-card-container { display: flex; gap: 30px; margin-top: 40px; }
+        .gate-card {
+            background: rgba(255,255,255,0.1); padding: 40px; border-radius: 24px;
+            cursor: pointer; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); width: 200px;
+        }
+        .gate-card:hover { background: var(--brand); transform: translateY(-10px); }
+        .gate-card h3 { margin: 15px 0 0; }
+        .gate-icon { font-size: 3rem; }
+
+        /* ADMIN PANEL OVERLAY */
+        #admin_panel {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f8fafc; z-index: 10000; overflow-y: auto; padding: 50px 10%;
+        }
+
+        /* EXISTING STYLES */
         nav {
             background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
             padding: 1rem 5%; display: flex; justify-content: space-between;
@@ -36,70 +58,66 @@
         .nav-links a { text-decoration: none; color: var(--slate-600); font-weight: 600; font-size: 0.9rem; margin-left: 24px; transition: 0.2s; }
         .nav-links a:hover { color: var(--brand); }
 
-        /* HERO AREA */
-        .hero {
-            padding: 120px 10% 160px; text-align: center;
-            background: radial-gradient(circle at 50% 0%, #e0f2fe 0%, #f8fafc 100%);
-        }
+        .hero { padding: 120px 10% 160px; text-align: center; background: radial-gradient(circle at 50% 0%, #e0f2fe 0%, #f8fafc 100%); }
         .hero h1 { font-size: 4rem; font-weight: 800; margin-bottom: 1.5rem; line-height: 1.1; letter-spacing: -2px; }
         .hero p { font-size: 1.35rem; color: var(--slate-600); max-width: 800px; margin: 0 auto 3rem; line-height: 1.6; }
-        .cta-group { display: flex; gap: 15px; justify-content: center; }
-        .btn { padding: 16px 32px; border-radius: 14px; font-weight: 700; text-decoration: none; transition: 0.3s; cursor: pointer; border: none; font-size: 1rem; }
-        .btn-primary { background: var(--brand); color: white; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.3); }
-
-        /* DASHBOARD GRID */
-        .dashboard-container {
-            max-width: 1300px; margin: -100px auto 100px; padding: 0 20px;
-            display: grid; grid-template-columns: 1.8fr 1fr; gap: 40px;
-        }
+        
+        .dashboard-container { max-width: 1300px; margin: -100px auto 100px; padding: 0 20px; display: grid; grid-template-columns: 1.8fr 1fr; gap: 40px; }
         .card { background: white; border-radius: 28px; padding: 40px; border: 1px solid var(--slate-100); box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
         
-        /* DATA TAGS */
         .badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 15px; }
         .badge-blue { background: var(--brand-soft); color: var(--brand); }
         .badge-green { background: #dcfce7; color: #166534; }
         
-        /* SLIDERS & FORM */
         .input-group { background: #f8fafc; padding: 22px; border-radius: 18px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
         .input-group label { display: flex; justify-content: space-between; font-weight: 700; font-size: 1rem; }
-        input[type=range] { width: 100%; height: 8px; accent-color: var(--brand); margin: 18px 0 10px; cursor: pointer; }
-        .helper-text { font-size: 0.8rem; color: var(--slate-600); margin: 0; opacity: 0.8; }
+        select, input[type=range] { width: 100%; margin-top: 10px; }
+        select { padding: 10px; border-radius: 8px; border: 1px solid #ddd; font-family: inherit; }
 
-        /* HOW IT WORKS SECTION */
-        .how-it-works { padding: 100px 10%; background: white; }
-        .section-title { text-align: center; margin-bottom: 60px; }
-        .section-title h2 { font-size: 2.5rem; font-weight: 800; }
-        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; }
-        .step-card { padding: 30px; text-align: left; border-radius: 20px; background: #f8fafc; border: 1px solid #f1f5f9; }
-        .step-num { width: 40px; height: 40px; background: var(--brand); color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; margin-bottom: 20px; }
-
-        /* FOOTER */
-        footer { background: var(--slate-900); color: white; padding: 80px 10%; margin-top: 0; }
-        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 50px; }
-        .footer-bottom { border-top: 1px solid #334155; margin-top: 60px; padding-top: 30px; font-size: 0.85rem; color: #94a3b8; text-align: center; }
-
+        .news-section { padding: 100px 10%; background: white; }
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        .news-card { border-radius: 20px; overflow: hidden; border: 1px solid #f1f5f9; }
+        .news-img { width: 100%; height: 180px; object-fit: cover; display: block; }
+        .news-body { padding: 20px; }
+        
+        footer { background: var(--slate-900); color: white; padding: 80px 10%; text-align: center; }
+        
         @media (max-width: 1000px) { .dashboard-container { grid-template-columns: 1fr; } .hero h1 { font-size: 2.8rem; } }
-        /* FAQ SECTION */
-.faq-section { padding: 100px 10%; background: #f8fafc; }
-.accordion { max-width: 800px; margin: 0 auto; }
-.accordion-item { background: white; margin-bottom: 15px; border-radius: 15px; border: 1px solid #e2e8f0; overflow: hidden; }
-.accordion-header { padding: 20px 25px; cursor: pointer; display: flex; justify-content: space-between; font-weight: 700; transition: 0.3s; }
-.accordion-header:hover { background: var(--brand-soft); }
-.accordion-content { padding: 0 25px 20px; color: var(--slate-600); font-size: 0.95rem; line-height: 1.6; }
-
-/* NEWS SECTION */
-.news-section { padding: 100px 10%; background: white; }
-.news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
-.news-card { border-radius: 20px; overflow: hidden; border: 1px solid #f1f5f9; transition: 0.3s; }
-.news-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-.news-img { width: 100%; height: 180px; object-fit: cover; display: block; }
-.news-body { padding: 20px; }
-.news-body h4 { margin: 0 0 10px; font-size: 1.1rem; }
-.news-body p { font-size: 0.85rem; color: var(--slate-600); margin: 0; }
     </style>
 </head>
 <body>
+
+<div id="gatekeeper">
+    <h1 style="font-size: 3rem; letter-spacing: -2px;">Welcome to CivicSpend Pro</h1>
+    <p style="opacity: 0.7;">Please select your access portal to continue</p>
+    <div class="gate-card-container">
+        <div class="gate-card" onclick="enterUser()">
+            <div class="gate-icon">👤</div>
+            <h3>Citizen User</h3>
+        </div>
+        <div class="gate-card" onclick="enterAdmin()">
+            <div class="gate-icon">🛡️</div>
+            <h3>Administrator</h3>
+        </div>
+    </div>
+</div>
+
+<div id="admin_panel">
+    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <h2>🛡️ Administrator Insights</h2>
+        <button class="btn btn-primary" onclick="location.reload()">Exit Admin</button>
+    </div>
+    <div class="dashboard-container" style="margin-top:0;">
+        <div class="card">
+            <h3>Age Group Distribution</h3>
+            <div id="age_chart" style="height: 400px;"></div>
+        </div>
+        <div class="card">
+            <h3>Gender Representation</h3>
+            <div id="gender_chart" style="height: 400px;"></div>
+        </div>
+    </div>
+</div>
 
 <nav>
     <div class="logo">🏙️ CivicSpend</div>
@@ -107,16 +125,15 @@
         <a href="#dashboard">Dashboard</a>
         <a href="#how-it-works">How It Works</a>
         <a href="#vote">Vote Priorities</a>
-        <a href="https://github.com/kaviyav007/budget-transparency">GitHub</a>
+        <button onclick="location.reload()" style="background:none; border:none; cursor:pointer; font-weight:600; color:var(--danger)">Switch Mode</button>
     </div>
 </nav>
 
 <section class="hero">
     <h1>Government Spending, <br><span style="color:var(--brand)">Decoded for You.</span></h1>
-    <p>CivicSpend Pro bridges the gap between complex municipal ledgers and citizen understanding. Explore live data, track every rupee, and influence the city's future through decentralized feedback.</p>
+    <p>CivicSpend Pro bridges the gap between complex municipal ledgers and citizen understanding.</p>
     <div class="cta-group">
         <a href="#dashboard" class="btn btn-primary">Enter Dashboard</a>
-        <a href="#how-it-works" class="btn" style="background: white; border: 1px solid #e2e8f0;">Learn More</a>
     </div>
 </section>
 
@@ -124,189 +141,89 @@
     <main>
         <div class="card">
             <span class="badge badge-blue">Live Expenditure Stream</span>
-            <h2 style="margin-top:0; letter-spacing:-1.5px;">Current Resource Allocation</h2>
-            <p style="color: var(--slate-600); margin-bottom: 40px; line-height: 1.6;">
-                This chart represents the <strong>validated treasury data</strong> for the fiscal year 2024-25. Data is pulled directly from the municipal accounting API and updated in real-time as warrants are issued.
-            </p>
-            
+            <h2>Current Resource Allocation</h2>
             <div id="main_chart" style="height: 550px; width: 100%;"></div>
-            
-            <div style="background: #eff6ff; border-left: 5px solid var(--brand); padding: 25px; margin-top: 40px; border-radius: 12px;">
-                <p style="margin:0; font-size: 0.95rem; color: #1e40af;">
-                    <strong>Live Audit:</strong> All data shown above is cryptographically signed by the City Finance Department to ensure zero tampering.
-                </p>
-            </div>
         </div>
     </main>
 
     <aside id="vote">
-    <div class="card" id="vote_card">
-        <span class="badge badge-green">Citizen Input Portal</span>
-        <h3 style="margin-top:0;">Voice Your Priorities</h3>
-        
-        <div id="login_prompt" style="text-align: center;">
-            <p style="font-size: 0.9rem; color: var(--slate-600);">Verify your identity via SMS to vote.</p>
+        <div class="card" id="vote_card">
+            <span class="badge badge-green">Citizen Input Portal</span>
+            <h3>Voice Your Priorities</h3>
             
-            <div id="phone_input_container">
-                <input type="tel" id="phoneNumber" placeholder="+91 98765 43210" 
-                       style="width:100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
-                
-                <div id="recaptcha-container"></div> 
-                
-                <button class="btn btn-primary" onclick="sendOTP()" style="width:100%; margin-top:10px;">Send OTP</button>
+            <div id="login_prompt">
+                <div id="phone_input_container">
+                    <input type="tel" id="phoneNumber" placeholder="+91 98765 43210" style="width:100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
+                    <div id="recaptcha-container"></div>
+                    <button class="btn btn-primary" onclick="sendOTP()" style="width:100%; margin-top:10px;">Send OTP</button>
+                </div>
+                <div id="otp_input_container" style="display:none; margin-top: 15px;">
+                    <input type="text" id="verificationCode" placeholder="Enter 6-digit OTP" style="width:100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
+                    <button class="btn btn-primary" onclick="verifyOTP()" style="width:100%">Verify & Login</button>
+                </div>
             </div>
 
-            <div id="otp_input_container" style="display:none; margin-top: 15px;">
-                <input type="text" id="verificationCode" placeholder="Enter 6-digit OTP" 
-                       style="width:100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px;">
-                <button class="btn btn-primary" onclick="verifyOTP()" style="width:100%">Verify & Login</button>
+            <div id="voting_controls" style="display: none;">
+                <p id="user_welcome" style="font-weight: 700; color: var(--brand);"></p>
+                
+                <div class="input-group">
+                    <label>Your Gender</label>
+                    <select id="user_gender">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Transgender">Transgender</option>
+                        <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Age Group</label>
+                    <select id="user_age">
+                        <option value="18-30">18-30</option>
+                        <option value="30-45">30-45</option>
+                        <option value="45-60">45-60</option>
+                        <option value="Above 60">Above 60</option>
+                    </select>
+                </div>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+                <div class="input-group"><label>Education <span id="val1">25%</span></label>
+                    <input type="range" id="edu_p" value="25" min="0" max="100" oninput="val1.innerText=this.value + '%'"></div>
+                <div class="input-group"><label>Infrastructure <span id="val2">25%</span></label>
+                    <input type="range" id="inf_p" value="25" min="0" max="100" oninput="val2.innerText=this.value + '%'"></div>
+
+                <button class="btn btn-primary" style="width:100%;" onclick="sendFeedback()">Submit Priority Vote</button>
+            </div>
+
+            <div id="already_voted" style="display: none; text-align: center;">
+                <h3>✅ Vote Recorded</h3>
+                <p>Thank you for contributing to your city's transparency.</p>
+                <button class="btn" onclick="logout()">Sign Out</button>
             </div>
         </div>
-
-        <div id="voting_controls" style="display: none;">
-            <p id="user_welcome" style="font-size: 0.85rem; font-weight: 700; color: var(--brand); margin-bottom: 15px;"></p>
-            
-            <div class="input-group"><label>Education <span id="val1">25%</span></label>
-                <input type="range" id="edu_p" value="25" min="0" max="100" oninput="val1.innerText=this.value + '%'"></div>
-            <div class="input-group"><label>Infrastructure <span id="val2">25%</span></label>
-                <input type="range" id="inf_p" value="25" min="0" max="100" oninput="val2.innerText=this.value + '%'"></div>
-            <div class="input-group"><label>Healthcare <span id="val3">25%</span></label>
-                <input type="range" id="health_p" value="25" min="0" max="100" oninput="val3.innerText=this.value + '%'"></div>
-            <div class="input-group"><label>Sanitation <span id="val4">25%</span></label>
-                <input type="range" id="san_p" value="25" min="0" max="100" oninput="val4.innerText=this.value + '%'"></div>
-
-            <button class="btn btn-primary" style="width:100%;" onclick="sendFeedback()">Submit Priority Vote</button>
-            <button class="btn" style="width:100%; margin-top:10px; font-size: 0.75rem; color: var(--slate-600);" onclick="logout()">Sign Out</button>
-        </div>
-
-        <div id="already_voted" style="display: none; text-align: center; padding: 20px;">
-            <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
-            <h4>Identity Verified</h4>
-            <p style="font-size: 0.85rem; color: var(--slate-600);">Your vote is securely recorded against your phone number.</p>
-            <button class="btn" style="width:100%; margin-top:10px; font-size: 0.75rem;" onclick="logout()">Sign Out</button>
-        </div>
-    </div>
-</aside>
+    </aside>
 </div>
 
-<section class="how-it-works" id="how-it-works">
-    <div class="section-title">
-        <span class="badge badge-blue">Process Transparency</span>
-        <h2>How CivicSpend Works</h2>
-        <p style="color:var(--slate-600); max-width:600px; margin: 15px auto;">We believe transparency is a journey, not just a destination. Here is how your data moves through our system.</p>
-    </div>
-
-    <div class="grid-3">
-        <div class="step-card">
-            <div class="step-num">01</div>
-            <h4>Data Ingestion</h4>
-            <p style="color:var(--slate-600); font-size:0.9rem; line-height:1.6;">Our backend connects directly to the Municipal Financial Management System (MFMS), pulling raw expenditure data every 24 hours.</p>
-        </div>
-        <div class="step-card">
-            <div class="step-num">02</div>
-            <h4>Visualization</h4>
-            <p style="color:var(--slate-600); font-size:0.9rem; line-height:1.6;">Complex spreadsheets are converted into intuitive charts using Google Charts API, making it easy for citizens to spot trends and anomalies.</p>
-        </div>
-        <div class="step-card">
-            <div class="step-num">03</div>
-            <h4>Public Feedback</h4>
-            <p style="color:var(--slate-600); font-size:0.9rem; line-height:1.6;">Citizens use the priority sliders to "vote" on where they want future funds to go. This data is stored on Google Firebase for public audit.</p>
-        </div>
-    </div>
-    
-    <div style="margin-top: 60px; text-align: center; padding: 40px; border-radius: 24px; background: var(--brand-soft);">
-        <h3>Building Trust Through Open Data</h3>
-        <p style="max-width: 700px; margin: 10px auto 25px; color: var(--slate-600);">Every click and every rupee is part of a larger mission to create a corruption-free, digitally empowered local government.</p>
-        <a href="#dashboard" class="btn btn-primary">Check the Live Audit</a>
-    </div>
-</section>
 <section class="news-section">
-    <div class="section-title">
-        <span class="badge badge-blue">Real World Impact</span>
-        <h2>Recent Infrastructure Projects</h2>
-        <p style="color:var(--slate-600); max-width:600px; margin: 15px auto;">See how your tax money is being transformed into physical community assets.</p>
-    </div>
     <div class="news-grid">
         <div class="news-card">
-            <img src="https://tse1.mm.bing.net/th/id/OIP.tQ0T4GzTbitBHJ0rOOSw_AHaEg?rs=1&pid=ImgDetMain&o=7&rm=3" alt="West Side Smart School" class="news-img">
-            <div class="news-body">
-                <span style="font-size: 0.7rem; color: var(--brand); font-weight: 800;">COMPLETED</span>
-                <h4>West Side Smart School</h4>
-                <p>New digital literacy wing added to the primary school serving 500+ students.</p>
-            </div>
+            <img src="https://tse1.mm.bing.net/th/id/OIP.tQ0T4GzTbitBHJ0rOOSw_AHaEg?rs=1&pid=ImgDetMain&o=7&rm=3" class="news-img">
+            <div class="news-body"><h4>West Side Smart School</h4></div>
         </div>
-
         <div class="news-card">
-            <img src="https://pgjonline.com/media/5704/green-grass-pipeline-environment-800.jpg" alt="Green-Route Pipeline" class="news-img">
-            <div class="news-body">
-                <span style="font-size: 0.7rem; color: var(--success); font-weight: 800;">IN PROGRESS</span>
-                <h4>Green-Route Pipeline</h4>
-                <p>Upgrading 5km of water pipelines to reduce leakages by 40% in the central district.</p>
-            </div>
+            <img src="https://pgjonline.com/media/5704/green-grass-pipeline-environment-800.jpg" class="news-img">
+            <div class="news-body"><h4>Green-Route Pipeline</h4></div>
         </div>
-
         <div class="news-card">
-            <img src="https://tse4.mm.bing.net/th/id/OIP.8UhPpxmqomqhDBfV2GMVBgHaE8?rs=1&pid=ImgDetMain&o=7&rm=3" alt="Central Park Lighting" class="news-img">
-            <div class="news-body">
-                <span style="font-size: 0.7rem; color: #b45309; font-weight: 800;">PLANNING</span>
-                <h4>Central Park Lighting</h4>
-                <p>Installing 200+ solar-powered LED lamps for enhanced nighttime safety.</p>
-            </div>
+            <img src="https://tse4.mm.bing.net/th/id/OIP.8UhPpxmqomqhDBfV2GMVBgHaE8?rs=1&pid=ImgDetMain&o=7&rm=3" class="news-img">
+            <div class="news-body"><h4>Central Park Lighting</h4></div>
         </div>
     </div>
 </section>
 
-<section class="faq-section">
-    <div class="section-title">
-        <span class="badge badge-blue">Resources</span>
-        <h2>Common Questions</h2>
-    </div>
-    <div class="accordion">
-        <div class="accordion-item">
-            <div class="accordion-header">Where does this data come from? <span>+</span></div>
-            <div class="accordion-content">Our data is fetched from the Open Data portal of the Municipal Corporation. It is updated once the quarterly audits are finalized.</div>
-        </div>
-        <div class="accordion-item">
-            <div class="accordion-header">How is my priority vote used? <span>+</span></div>
-            <div class="accordion-content">Votes are aggregated into a "Public Sentiment Report" which is shared with the City Council before the next annual budget planning meeting.</div>
-        </div>
-        <div class="accordion-item">
-            <div class="accordion-header">Is this platform official? <span>+</span></div>
-            <div class="accordion-content">Currently, this is a transparency initiative built by civic-tech volunteers. We aim to integrate it officially with government systems.</div>
-        </div>
-    </div>
-</section>
-
-<footer id="about">
-    <div class="footer-grid">
-        <div>
-            <h3 class="logo" style="color:white; margin-bottom: 1.5rem;">CivicSpend</h3>
-            <p style="font-size: 0.9rem; color: #94a3b8; line-height: 1.6;">Making municipal finance accessible, understandable, and actionable for every citizen in the city.</p>
-        </div>
-        <div>
-            <h4>Project Links</h4>
-            <ul>
-                <li><a href="#">Audit Documentation</a></li>
-                <li><a href="#">City Data API</a></li>
-                <li><a href="#">Privacy Policy</a></li>
-            </ul>
-        </div>
-        <div>
-            <h4>Contact Us</h4>
-            <ul>
-                <li>📧 support@civicspend.gov</li>
-                <li>📍 Finance Dept, City Hall</li>
-                <li>📞 +91 44 2345 6789</li>
-            </ul>
-        </div>
-        <div>
-            <h4>Legal</h4>
-            <p style="font-size: 0.8rem; color: #64748b; line-height: 1.5;">This platform is a hackathon prototype and uses simulated financial data for demonstration.</p>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        &copy; 2026 CivicSpend Pro. All rights reserved. Built with Firebase & Google Charts.
-    </div>
+<footer>
+    <p>&copy; 2026 CivicSpend Pro | Built for Transparency</p>
 </footer>
 
 <script type="module">
@@ -314,7 +231,6 @@
     import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
     import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // PASTE YOUR UPDATED CONFIG HERE
     const firebaseConfig = {
         apiKey: "AIzaSyAu4vi1x-tRVmHyKyp1JGfVfyBva7A91Jc",
         authDomain: "local-budget-transparency.firebaseapp.com",
@@ -329,108 +245,124 @@
     const db = getDatabase(app);
     const auth = getAuth(app);
 
-    // Initialize the invisible Recaptcha
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible'
-    });
+    // --- ACCESS LOGIC ---
+    window.enterUser = () => {
+        document.getElementById('gatekeeper').style.display = 'none';
+    };
 
-    // --- PHONE AUTH LOGIC ---
+    window.enterAdmin = () => {
+        const pass = prompt("Enter Admin Password:");
+        if(pass === "1234") {
+            document.getElementById('gatekeeper').style.display = 'none';
+            document.getElementById('admin_panel').style.display = 'block';
+            loadAdminCharts();
+        } else {
+            alert("Wrong Password!");
+        }
+    };
+
+    // --- ADMIN CHARTS ---
+    async function loadAdminCharts() {
+        const snapshot = await get(ref(db, 'citizen_proposals'));
+        const data = snapshot.val();
+        
+        let ageCounts = {"18-30": 0, "30-45": 0, "45-60": 0, "Above 60": 0};
+        let genderCounts = {"Male": 0, "Female": 0, "Transgender": 0, "Other": 0};
+
+        if(data) {
+            Object.values(data).forEach(vote => {
+                if(vote.age) ageCounts[vote.age]++;
+                if(vote.gender) genderCounts[vote.gender]++;
+            });
+        }
+
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(() => {
+            // Age Chart
+            const ageData = google.visualization.arrayToDataTable([
+                ['Age', 'Votes'],
+                ['18-30', ageCounts["18-30"]], ['30-45', ageCounts["30-45"]],
+                ['45-60', ageCounts["45-60"]], ['Above 60', ageCounts["Above 60"]]
+            ]);
+            new google.visualization.ColumnChart(document.getElementById('age_chart')).draw(ageData, {colors:['#2563eb']});
+
+            // Gender Chart
+            const genderData = google.visualization.arrayToDataTable([
+                ['Gender', 'Votes'],
+                ['Male', genderCounts["Male"]], ['Female', genderCounts["Female"]],
+                ['Transgender', genderCounts["Transgender"]], ['Other', genderCounts["Other"]]
+            ]);
+            new google.visualization.PieChart(document.getElementById('gender_chart')).draw(genderData);
+        });
+    }
+
+    // --- USER LOGIC ---
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
+
     window.sendOTP = () => {
         const number = document.getElementById('phoneNumber').value;
-        const appVerifier = window.recaptchaVerifier;
-
-        signInWithPhoneNumber(auth, number, appVerifier)
-            .then((confirmationResult) => {
-                window.confirmationResult = confirmationResult;
-                document.getElementById('phone_input_container').style.display = 'none';
-                document.getElementById('otp_input_container').style.display = 'block';
-                alert("OTP Sent!");
-            }).catch((error) => {
-                alert("Error: " + error.message);
-                window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
-            });
+        signInWithPhoneNumber(auth, number, window.recaptchaVerifier).then(res => {
+            window.confirmationResult = res;
+            document.getElementById('phone_input_container').style.display = 'none';
+            document.getElementById('otp_input_container').style.display = 'block';
+        });
     };
 
     window.verifyOTP = () => {
         const code = document.getElementById('verificationCode').value;
-        window.confirmationResult.confirm(code)
-            .then((result) => {
-                console.log("Logged in successfully");
-            }).catch((error) => alert("Invalid OTP. Try again."));
+        window.confirmationResult.confirm(code).catch(e => alert("Error"));
     };
 
     window.logout = () => signOut(auth);
 
-    // Handle Auth State Changes
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            checkUserVote(user);
-        } else {
-            toggleUI('login_prompt');
-            // Reset UI for fresh login
-            document.getElementById('phone_input_container').style.display = 'block';
-            document.getElementById('otp_input_container').style.display = 'none';
-        }
+    onAuthStateChanged(auth, user => {
+        if(user) checkUserVote(user);
+        else toggleUI('login_prompt');
     });
 
     async function checkUserVote(user) {
-        const snapshot = await get(ref(db, 'citizen_proposals/' + user.uid));
-        if (snapshot.exists()) {
-            toggleUI('already_voted');
-        } else {
-            document.getElementById('user_welcome').innerText = "Verified Number: " + user.phoneNumber;
+        const snap = await get(ref(db, 'citizen_proposals/' + user.uid));
+        if(snap.exists()) toggleUI('already_voted');
+        else {
+            document.getElementById('user_welcome').innerText = "Logged in: " + user.phoneNumber;
             toggleUI('voting_controls');
         }
     }
 
-    function toggleUI(sectionId) {
-        ['login_prompt', 'voting_controls', 'already_voted'].forEach(id => {
-            document.getElementById(id).style.display = (id === sectionId) ? 'block' : 'none';
+    function toggleUI(id) {
+        ['login_prompt', 'voting_controls', 'already_voted'].forEach(el => {
+            document.getElementById(el).style.display = (el === id) ? 'block' : 'none';
         });
     }
 
-    // --- DATA SUBMISSION ---
     window.sendFeedback = () => {
         const user = auth.currentUser;
         const voteData = {
             phone: user.phoneNumber,
+            gender: document.getElementById('user_gender').value,
+            age: document.getElementById('user_age').value,
             edu: document.getElementById('edu_p').value,
             infra: document.getElementById('inf_p').value,
-            health: document.getElementById('health_p').value,
-            san: document.getElementById('san_p').value,
             timestamp: new Date().toISOString()
         };
-
-        set(ref(db, 'citizen_proposals/' + user.uid), voteData)
-            .then(() => {
-                alert("Success! Your profile is saved.");
-                checkUserVote(user);
-            });
+        set(ref(db, 'citizen_proposals/' + user.uid), voteData).then(() => checkUserVote(user));
     };
 
-    // --- CHART LOGIC (Existing) ---
+    // Main Chart
     google.charts.load('current', {'packages':['corechart']});
-    onValue(ref(db, 'budgets/2024'), (snapshot) => {
-        const val = snapshot.val();
-        if (val) {
-            google.charts.setOnLoadCallback(() => {
-                const data = google.visualization.arrayToDataTable([
-                    ['Category', 'Amount'],
-                    ['Education', val.education], ['Healthcare', val.health],
-                    ['Infrastructure', val.roads], ['Sanitation', val.water]
-                ]);
-                new google.visualization.PieChart(document.getElementById('main_chart')).draw(data, {
-                    pieHole: 0.6, colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444'],
-                    chartArea: { width: '90%', height: '80%' },
-                    legend: { position: 'bottom' }, backgroundColor: 'transparent'
-                });
-            });
-        }
+    onValue(ref(db, 'budgets/2024'), snap => {
+        const v = snap.val();
+        if(v) google.charts.setOnLoadCallback(() => {
+            const data = google.visualization.arrayToDataTable([
+                ['Category', 'Amount'], ['Edu', v.education], ['Health', v.health], ['Roads', v.roads], ['Water', v.water]
+            ]);
+            new google.visualization.PieChart(document.getElementById('main_chart')).draw(data, {pieHole: 0.5});
+        });
     });
-</script>>
-
+</script>
 </body>
 </html>
+
 
 
 
