@@ -69,7 +69,12 @@
             position: sticky; top: 0; z-index: 1000;
         }
         .logo { font-weight: 800; font-size: 1.4rem; color: var(--brand); letter-spacing: -0.5px; }
-        .nav-links a { text-decoration: none; color: var(--slate-600); font-weight: 600; font-size: 0.9rem; margin-left: 24px; transition: 0.2s; }
+        .nav-links { display: flex; align-items: center; }
+        .nav-links a { 
+            text-decoration: none; color: var(--slate-600); font-weight: 600; 
+            font-size: 0.9rem; margin-left: 24px; transition: 0.2s; 
+            cursor: pointer;
+        }
         .nav-links a:hover { color: var(--brand); }
         .user-status { font-weight: 600; color: var(--brand); }
         .admin-badge { background: #fef3c7; color: var(--warning); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
@@ -164,6 +169,7 @@
             .dashboard-container { grid-template-columns: 1fr; } 
             .hero h1 { font-size: 2.8rem; }
             .vote-demographics { grid-template-columns: 1fr; }
+            .nav-links { flex-wrap: wrap; }
         }
         footer { background: var(--slate-900); color: white; padding: 80px 10%; margin-top: 0; }
         .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 50px; }
@@ -235,12 +241,12 @@
 <nav>
     <div class="logo">🏙️ CivicSpend</div>
     <div class="nav-links">
-        <a href="#dashboard">Dashboard</a>
-        <a href="#how-it-works">How It Works</a>
-        <a href="#vote">Vote Priorities</a>
-        <a href="#projects">Projects</a>
-        <a href="#admin" id="adminLink" style="display: none;">Admin</a>
-        <select id="languageSelect" onchange="changeLanguage()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white;">
+        <a onclick="scrollToSection('dashboard')">Dashboard</a>
+        <a onclick="scrollToSection('how-it-works')">How It Works</a>
+        <a onclick="scrollToSection('vote')">Vote Priorities</a>
+        <a onclick="scrollToSection('projects')">Projects</a>
+        <a href="#admin" id="adminLink" style="display: none;" onclick="showAdminSection()">Admin</a>
+        <select id="languageSelect" onchange="changeLanguage()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">
             <option value="en">English</option>
             <option value="ta">தமிழ் (Tamil)</option>
             <option value="hi">हिंदी (Hindi)</option>
@@ -255,8 +261,8 @@
     <h1 id="heroTitle">Government Spending, <br><span style="color:var(--brand)">Decoded for You.</span></h1>
     <p id="heroSubtitle">CivicSpend Pro bridges the gap between complex municipal ledgers and citizen understanding. Explore live data, track every rupee, and influence the city's future through decentralized feedback.</p>
     <div class="cta-group">
-        <a href="#dashboard" class="btn btn-primary">Enter Dashboard</a>
-        <a href="#how-it-works" class="btn" style="background: white; border: 1px solid #e2e8f0;">Learn More</a>
+        <a onclick="scrollToSection('dashboard')" class="btn btn-primary">Enter Dashboard</a>
+        <a onclick="scrollToSection('how-it-works')" class="btn" style="background: white; border: 1px solid #e2e8f0;">Learn More</a>
     </div>
 </section>
 
@@ -586,10 +592,10 @@
         <div>
             <h4>Quick Links</h4>
             <ul>
-                <li><a href="#dashboard">Dashboard</a></li>
-                <li><a href="#vote">Vote Now</a></li>
-                <li><a href="#projects">Project Map</a></li>
-                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a onclick="scrollToSection('dashboard')">Dashboard</a></li>
+                <li><a onclick="scrollToSection('vote')">Vote Now</a></li>
+                <li><a onclick="scrollToSection('projects')">Project Map</a></li>
+                <li><a onclick="scrollToSection('how-it-works')">How It Works</a></li>
             </ul>
         </div>
     </div>
@@ -605,6 +611,28 @@
     let currentLanguage = 'en';
     let mapMarkers = [];
     let map = null;
+
+    // SCROLL TO SECTION FUNCTION (FIX for navigation tabs)
+    window.scrollToSection = function(sectionId) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+            const offset = 80; // Account for sticky header
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+            
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    // SHOW ADMIN SECTION (when admin link clicked)
+    window.showAdminSection = function() {
+        if (isAdmin) {
+            scrollToSection('vote');
+        }
+    };
 
     // ENTRY MODAL HANDLING
     window.chooseEntry = function(type) {
@@ -640,8 +668,6 @@
         loadPublicStats();
         
         console.log("→ Guest mode activated");
-        // Optional: small visual feedback
-        // alert("Now browsing as Guest (voting disabled)");
     };
 
     // MODAL CONTROLS
@@ -1263,7 +1289,7 @@
         alert('Vote data export would be generated. This is a demo feature.');
     };
     
-    // TRANSLATION SYSTEM
+    // TRANSLATION SYSTEM - FIXED
     const I18N = {
         en: {
             heroTitle: "Government Spending, <br><span style='color:var(--brand)'>Decoded for You.</span>",
@@ -1302,7 +1328,14 @@
             eduLabel: "Education",
             infLabel: "Infrastructure",
             healthLabel: "Healthcare",
-            sanLabel: "Sanitation"
+            sanLabel: "Sanitation",
+            step1Title: "Data Ingestion",
+            step1Desc: "Our backend connects directly to the Municipal Financial Management System (MFMS), pulling raw expenditure data every 24 hours.",
+            step2Title: "Visualization",
+            step2Desc: "Complex spreadsheets are converted into intuitive charts using Google Charts API, making it easy for citizens to spot trends and anomalies.",
+            step3Title: "Public Feedback",
+            step3Desc: "Citizens use the priority sliders to 'vote' on where they want future funds to go. This data is stored on Google Firebase for public audit.",
+            chartDesc: "This chart represents the <strong>validated treasury data</strong> for the fiscal year 2024-25. Data is pulled directly from the municipal accounting API and updated in real-time as warrants are issued."
         },
         ta: {
             heroTitle: "அரசு செலவு, <br><span style='color:var(--brand)'>உங்களுக்காக விளக்கப்பட்டது.</span>",
@@ -1327,7 +1360,14 @@
             eduLabel: "கல்வி",
             infLabel: "உள்கட்டமைப்பு",
             healthLabel: "சுகாதாரம்",
-            sanLabel: "சுகாதாரம்"
+            sanLabel: "சுகாதாரம்",
+            step1Title: "டேட்டா இன்ஜெஸ்சன்",
+            step1Desc: "எங்கள் பேக்எண்ட் MFMS உடன் நேரடியாக இணைக்கப்பட்டுள்ளது, 24 மணிநேரத்திற்கு ஒருமுறை டேட்டா பெறுகிறது.",
+            step2Title: "விசுவலிசேஷன்",
+            step2Desc: "எளிதான சார்ட்டுகளாக மாற்றப்பட்டு டேட்டா காட்சிப்படுத்தப்படுகிறது.",
+            step3Title: "பப்ளிக் ஃபீட்பேக்",
+            step3Desc: "குடிமக்கள் முன்னுரிமைகளை வாக்களிக்க முடியும்.",
+            chartDesc: "இந்த சார்ட் 2024-25 நிதியாண்டிற்கான சரிபார்க்கப்பட்ட டேட்டாவைக் காட்டுகிறது."
         },
         hi: {
             heroTitle: "सरकारी खर्च, <br><span style='color:var(--brand)'>आपके लिए सरल.</span>",
@@ -1352,7 +1392,14 @@
             eduLabel: "शिक्षा",
             infLabel: "बुनियादी ढांचा",
             healthLabel: "स्वास्थ्य सेवा",
-            sanLabel: "स्वच्छता"
+            sanLabel: "स्वच्छता",
+            step1Title: "डेटा इन्गेस्टन",
+            step1Desc: "हमारा बैकएंड MFMS से सीधे जुड़ता है, 24 घंटे में डेटा लाता है।",
+            step2Title: "विज़ुअलाइज़ेशन",
+            step2Desc: "डेटा को चार्ट के रूप में दिखाया जाता है।",
+            step3Title: "जनता की प्रतिक्रिया",
+            step3Desc: "नागरिक वोट दे सकते हैं।",
+            chartDesc: "यह चार्ट 2024-25 के वित्तीय वर्ष के लिए सत्यापित डेटा दिखाता है।"
         }
     };
     
@@ -1363,7 +1410,9 @@
     
     function applyLanguage(lang) {
         const t = I18N[lang] || I18N.en;
-        const elements = [
+        
+        // Update all text elements
+        const elementsToTranslate = [
             'heroTitle', 'heroSubtitle', 'chartTitle', 'voteTitle', 'publicStatsTitle', 
             'publicStatsDesc', 'publicTotalVotesLabel', 'publicTodayVotesLabel',
             'publicAvgEducationLabel', 'publicAvgInfraLabel', 'publicAgeTitle', 
@@ -1371,21 +1420,67 @@
             'faqTitle', 'loginPromptText', 'votedTitle', 'votedSubtitle',
             'yearCompareTitle', 'budgetActualTitle', 'eduLabel', 'infLabel',
             'healthLabel', 'sanLabel', 'faq1', 'faq1a', 'faq2', 'faq2a',
-            'faq3', 'faq3a', 'faq4', 'faq4a', 'faq5', 'faq5a', 'faq6', 'faq6a'
+            'faq3', 'faq3a', 'faq4', 'faq4a', 'faq5', 'faq5a', 'faq6', 'faq6a',
+            'step1Title', 'step1Desc', 'step2Title', 'step2Desc', 'step3Title', 'step3Desc',
+            'chartDesc'
         ];
         
-        elements.forEach(id => {
+        elementsToTranslate.forEach(id => {
             const el = document.getElementById(id);
-            if (el) {
-                if (el.tagName === 'SPAN' && el.parentElement && el.parentElement.classList.contains('accordion-header')) {
-                    el.textContent = t[id] || el.textContent;
-                } else if (el.tagName === 'SPAN' && el.parentElement && el.parentElement.classList.contains('accordion-content')) {
-                    el.textContent = t[id] || el.textContent;
+            if (el && t[id]) {
+                if (id === 'heroTitle' || id === 'chartDesc') {
+                    el.innerHTML = t[id]; // Use innerHTML for elements with HTML
                 } else {
-                    el.textContent = t[id] || el.textContent;
+                    el.textContent = t[id];
                 }
             }
         });
+        
+        // Update select options
+        const genderSelect = document.getElementById('genderSelect');
+        const ageGroupSelect = document.getElementById('ageGroupSelect');
+        const wardSelect = document.getElementById('wardSelect');
+        
+        if (lang === 'ta') {
+            if (genderSelect) {
+                genderSelect.options[0].text = 'பாலினத்தைத் தேர்ந்தெடுக்கவும்';
+                genderSelect.options[1].text = 'ஆண்';
+                genderSelect.options[2].text = 'பெண்';
+                genderSelect.options[3].text = 'மற்றவை';
+            }
+            if (ageGroupSelect) {
+                ageGroupSelect.options[0].text = 'வயது குழுவைத் தேர்ந்தெடுக்கவும்';
+            }
+            if (wardSelect) {
+                wardSelect.options[0].text = 'உங்கள் வார்டைத் தேர்ந்தெடுக்கவும்';
+            }
+        } else if (lang === 'hi') {
+            if (genderSelect) {
+                genderSelect.options[0].text = 'लिंग चुनें';
+                genderSelect.options[1].text = 'पुरुष';
+                genderSelect.options[2].text = 'महिला';
+                genderSelect.options[3].text = 'अन्य';
+            }
+            if (ageGroupSelect) {
+                ageGroupSelect.options[0].text = 'आयु समूह चुनें';
+            }
+            if (wardSelect) {
+                wardSelect.options[0].text = 'अपना वार्ड चुनें';
+            }
+        } else {
+            if (genderSelect) {
+                genderSelect.options[0].text = 'Select Gender';
+                genderSelect.options[1].text = 'Male';
+                genderSelect.options[2].text = 'Female';
+                genderSelect.options[3].text = 'Other';
+            }
+            if (ageGroupSelect) {
+                ageGroupSelect.options[0].text = 'Select Age Group';
+            }
+            if (wardSelect) {
+                wardSelect.options[0].text = 'Select Your Ward';
+            }
+        }
     }
     
     // CHATBOT FUNCTIONS
