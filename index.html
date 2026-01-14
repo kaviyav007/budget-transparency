@@ -33,15 +33,33 @@
         .login-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.5); z-index: 2000; display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .login-modal.show {
+            display: block;
+            opacity: 1;
         }
         .modal-content {
             background: white; margin: 10% auto; width: 90%; max-width: 500px; 
             border-radius: 20px; padding: 40px; position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.4s ease;
+        }
+        .login-modal.show .modal-content {
+            transform: translateY(0);
         }
         .close-modal { position: absolute; top: 20px; right: 25px; font-size: 2rem; cursor: pointer; }
 
         /* ENTRY MODAL - FIRST LOAD */
-        #entryModal { display: block !important; }
+        #entryModal { 
+            display: block !important;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        #entryModal.show {
+            opacity: 1;
+        }
 
         /* NAVIGATION */
         nav {
@@ -581,8 +599,6 @@
 </footer>
 
 <script>
-    // FIXED: SIMPLE JAVASCRIPT FUNCTIONS (No Firebase dependency issues)
-    
     // Global variables
     let currentUser = null;
     let isAdmin = false;
@@ -590,63 +606,75 @@
     let mapMarkers = [];
     let map = null;
 
-    // FIXED: ENTRY MODAL FUNCTIONS
+    // ENTRY MODAL HANDLING
     window.chooseEntry = function(type) {
-        // Hide both action sections first
         document.getElementById('entryUserActions').style.display = 'none';
         document.getElementById('entryAdminActions').style.display = 'none';
         
-        // Show the selected one
         if (type === 'user') {
             document.getElementById('entryUserActions').style.display = 'block';
         } else if (type === 'admin') {
             document.getElementById('entryAdminActions').style.display = 'block';
         }
     };
-    
+
     window.closeEntryModal = function() {
-        document.getElementById('entryModal').style.display = 'none';
+        document.getElementById('entryModal').classList.remove('show');
+        setTimeout(() => {
+            document.getElementById('entryModal').style.display = 'none';
+        }, 400);
     };
-    
-    // FIXED: Browse as Guest function
+
+    // VERY IMPORTANT: Guest mode
     window.enterAsGuest = function() {
-        // Clear any existing user data
         currentUser = null;
         isAdmin = false;
+        
         localStorage.removeItem('currentUser');
         localStorage.removeItem('isAdmin');
         
-        // Close the entry modal
+        // Most important lines — close modal & refresh UI
         closeEntryModal();
-        
-        // Update UI for guest
         updateUI();
         
-        // Load public stats
         loadPublicStats();
         
-        console.log("Guest mode activated");
+        console.log("→ Guest mode activated");
+        // Optional: small visual feedback
+        // alert("Now browsing as Guest (voting disabled)");
     };
-    
-    // LOGIN FUNCTIONS
+
+    // MODAL CONTROLS
     window.openLoginModal = function() {
         document.getElementById('loginModal').style.display = 'block';
+        setTimeout(() => {
+            document.getElementById('loginModal').classList.add('show');
+        }, 10);
     };
     
     window.closeLoginModal = function() {
-        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('loginModal').classList.remove('show');
+        setTimeout(() => {
+            document.getElementById('loginModal').style.display = 'none';
+        }, 400);
     };
     
     window.openAdminLogin = function() {
         document.getElementById('adminLoginModal').style.display = 'block';
+        setTimeout(() => {
+            document.getElementById('adminLoginModal').classList.add('show');
+        }, 10);
     };
     
     window.closeAdminLoginModal = function() {
-        document.getElementById('adminLoginModal').style.display = 'none';
+        document.getElementById('adminLoginModal').classList.remove('show');
+        setTimeout(() => {
+            document.getElementById('adminLoginModal').style.display = 'none';
+        }, 400);
     };
-    
-    // USER OTP FUNCTIONS
-    window.sendOTP = async function() {
+
+    // SEND OTP FUNCTION
+    window.sendOTP = function() {
         const phoneNumber = document.getElementById('phoneNumber').value;
         
         if (!phoneNumber || phoneNumber.length < 10) {
@@ -659,85 +687,80 @@
         document.getElementById('otpContainer').style.display = 'block';
         alert('Demo: OTP sent to ' + phoneNumber + '\nUse 123456 as OTP');
     };
-    
+
+    // USER LOGIN SUCCESS PATH
     window.verifyOTP = async function() {
         const otp = document.getElementById('verificationCode').value;
-        const phoneNumber = document.getElementById('phoneNumber').value;
         
         if (otp === '123456') {
+            const phone = document.getElementById('phoneNumber').value || '+919876543210';
+            
             currentUser = {
                 uid: 'user-' + Date.now(),
-                phoneNumber: phoneNumber || '+919876543210',
+                phoneNumber: phone,
                 displayName: 'Demo User'
             };
             isAdmin = false;
             
-            // Store in localStorage
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
             localStorage.setItem('isAdmin', 'false');
             
-            // Close modals
+            // Close ALL modals
             closeLoginModal();
-            closeEntryModal();
+            closeEntryModal();           // ← This was often missing!
             
-            // Update UI
             updateUI();
-            
-            // Check if user has voted
             checkUserVote();
-            
-            // Load stats
             loadPublicStats();
             
-            alert('✅ Login successful!');
+            alert('✅ Successfully logged in as User!');
         } else {
-            alert('❌ Invalid OTP. Use 123456 for demo.');
+            alert('❌ Wrong OTP (demo uses 123456)');
         }
     };
-    
-    // ADMIN LOGIN - Accepts ANY email/password
+
+    // ADMIN LOGIN SUCCESS PATH
     window.adminLogin = function() {
-        const email = document.getElementById('adminEmail').value || 'admin@civicspend.gov';
-        const password = document.getElementById('adminPassword').value || 'admin123';
+        const email = document.getElementById('adminEmail').value.trim() || 'admin@example.com';
         
         currentUser = {
             uid: 'admin-' + Date.now(),
             email: email,
-            displayName: 'Admin User'
+            displayName: 'Administrator'
         };
         isAdmin = true;
         
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         localStorage.setItem('isAdmin', 'true');
         
-        // Close modals
+        // Close both modals
         closeAdminLoginModal();
-        closeEntryModal();
+        closeEntryModal();           // ← This was missing in many cases
         
         updateUI();
         loadAdminStats();
+        
         alert('✅ Admin login successful!');
     };
-    
-    // LOGOUT
+
+    // LOGOUT - also show entry modal again if you want
     window.logout = function() {
         currentUser = null;
         isAdmin = false;
         
-        // Clear localStorage
         localStorage.removeItem('currentUser');
         localStorage.removeItem('isAdmin');
         
-        // Update UI
         updateUI();
-        
-        // Load public stats
         loadPublicStats();
         
-        // Show entry modal again
+        // Optional: show entry modal again after logout
         document.getElementById('entryModal').style.display = 'block';
+        setTimeout(() => {
+            document.getElementById('entryModal').classList.add('show');
+        }, 10);
     };
-    
+
     // UPDATE UI
     function updateUI() {
         const loginBtn = document.getElementById('loginBtn');
@@ -934,39 +957,49 @@
             ]);
             
             // Draw charts
-            new google.visualization.PieChart(document.getElementById('main_chart')).draw(budgetData, {
-                pieHole: 0.6,
-                chartArea: {width: '90%', height: '80%'},
-                legend: {position: 'bottom'},
-                backgroundColor: 'transparent',
-                colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
-            });
+            if (document.getElementById('main_chart')) {
+                new google.visualization.PieChart(document.getElementById('main_chart')).draw(budgetData, {
+                    pieHole: 0.6,
+                    chartArea: {width: '90%', height: '80%'},
+                    legend: {position: 'bottom'},
+                    backgroundColor: 'transparent',
+                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
+                });
+            }
             
-            new google.visualization.ColumnChart(document.getElementById('year_comparison_chart')).draw(yearData, {
-                title: 'Year-over-Year Comparison (₹ Cr)',
-                legend: {position: 'top'},
-                backgroundColor: 'transparent',
-                colors: ['#94a3b8', '#2563eb']
-            });
+            if (document.getElementById('year_comparison_chart')) {
+                new google.visualization.ColumnChart(document.getElementById('year_comparison_chart')).draw(yearData, {
+                    title: 'Year-over-Year Comparison (₹ Cr)',
+                    legend: {position: 'top'},
+                    backgroundColor: 'transparent',
+                    colors: ['#94a3b8', '#2563eb']
+                });
+            }
             
-            new google.visualization.ColumnChart(document.getElementById('budget_actual_chart')).draw(budgetActualData, {
-                title: 'Budget vs Actual Spending (₹ Cr)',
-                legend: {position: 'top'},
-                backgroundColor: 'transparent',
-                colors: ['#f59e0b', '#10b981']
-            });
+            if (document.getElementById('budget_actual_chart')) {
+                new google.visualization.ColumnChart(document.getElementById('budget_actual_chart')).draw(budgetActualData, {
+                    title: 'Budget vs Actual Spending (₹ Cr)',
+                    legend: {position: 'top'},
+                    backgroundColor: 'transparent',
+                    colors: ['#f59e0b', '#10b981']
+                });
+            }
             
-            new google.visualization.ColumnChart(document.getElementById('publicAgeChart')).draw(ageData, {
-                legend: 'none',
-                backgroundColor: 'transparent',
-                colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
-            });
+            if (document.getElementById('publicAgeChart')) {
+                new google.visualization.ColumnChart(document.getElementById('publicAgeChart')).draw(ageData, {
+                    legend: 'none',
+                    backgroundColor: 'transparent',
+                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
+                });
+            }
             
-            new google.visualization.ColumnChart(document.getElementById('publicGenderChart')).draw(genderData, {
-                legend: 'none',
-                backgroundColor: 'transparent',
-                colors: ['#2563eb', '#10b981', '#f59e0b']
-            });
+            if (document.getElementById('publicGenderChart')) {
+                new google.visualization.ColumnChart(document.getElementById('publicGenderChart')).draw(genderData, {
+                    legend: 'none',
+                    backgroundColor: 'transparent',
+                    colors: ['#2563eb', '#10b981', '#f59e0b']
+                });
+            }
         });
     }
     
@@ -1001,37 +1034,39 @@
         
         const todayVotes = votes.filter(v => v.date === today).length;
         
-        document.getElementById('totalVotes').textContent = votes.length;
-        document.getElementById('todayVotes').textContent = todayVotes;
-        document.getElementById('maleVotes').textContent = genderCounts['male'];
-        document.getElementById('femaleVotes').textContent = genderCounts['female'];
-        document.getElementById('ward1Votes').textContent = wardCounts['Ward 1'];
-        document.getElementById('ward2Votes').textContent = wardCounts['Ward 2'];
+        if (document.getElementById('totalVotes')) document.getElementById('totalVotes').textContent = votes.length;
+        if (document.getElementById('todayVotes')) document.getElementById('todayVotes').textContent = todayVotes;
+        if (document.getElementById('maleVotes')) document.getElementById('maleVotes').textContent = genderCounts['male'];
+        if (document.getElementById('femaleVotes')) document.getElementById('femaleVotes').textContent = genderCounts['female'];
+        if (document.getElementById('ward1Votes')) document.getElementById('ward1Votes').textContent = wardCounts['Ward 1'];
+        if (document.getElementById('ward2Votes')) document.getElementById('ward2Votes').textContent = wardCounts['Ward 2'];
         
         // Update average priorities
         if (votes.length > 0) {
-            document.getElementById('avgEdu').textContent = Math.round(totalEdu / votes.length) + '%';
-            document.getElementById('avgInfra').textContent = Math.round(totalInfra / votes.length) + '%';
-            document.getElementById('avgHealth').textContent = Math.round(totalHealth / votes.length) + '%';
-            document.getElementById('avgSan').textContent = Math.round(totalSan / votes.length) + '%';
+            if (document.getElementById('avgEdu')) document.getElementById('avgEdu').textContent = Math.round(totalEdu / votes.length) + '%';
+            if (document.getElementById('avgInfra')) document.getElementById('avgInfra').textContent = Math.round(totalInfra / votes.length) + '%';
+            if (document.getElementById('avgHealth')) document.getElementById('avgHealth').textContent = Math.round(totalHealth / votes.length) + '%';
+            if (document.getElementById('avgSan')) document.getElementById('avgSan').textContent = Math.round(totalSan / votes.length) + '%';
         }
         
         // Update recent votes list
         const recentVotesList = document.getElementById('recentVotesList');
-        recentVotesList.innerHTML = '';
-        
-        const recentVotes = votes.slice(-10).reverse();
-        recentVotes.forEach(vote => {
-            const div = document.createElement('div');
-            div.style.padding = '8px';
-            div.style.borderBottom = '1px solid #e2e8f0';
-            div.innerHTML = `
-                <strong>${vote.phone || 'Unknown'}</strong><br>
-                <small>${vote.ward || 'No ward'} | ${vote.ageGroup || 'No age'} | ${vote.gender || 'No gender'}</small><br>
-                <small>Edu: ${vote.edu}%, Infra: ${vote.infra}%, Health: ${vote.health}%, San: ${vote.san}%</small>
-            `;
-            recentVotesList.appendChild(div);
-        });
+        if (recentVotesList) {
+            recentVotesList.innerHTML = '';
+            
+            const recentVotes = votes.slice(-10).reverse();
+            recentVotes.forEach(vote => {
+                const div = document.createElement('div');
+                div.style.padding = '8px';
+                div.style.borderBottom = '1px solid #e2e8f0';
+                div.innerHTML = `
+                    <strong>${vote.phone || 'Unknown'}</strong><br>
+                    <small>${vote.ward || 'No ward'} | ${vote.ageGroup || 'No age'} | ${vote.gender || 'No gender'}</small><br>
+                    <small>Edu: ${vote.edu}%, Infra: ${vote.infra}%, Health: ${vote.health}%, San: ${vote.san}%</small>
+                `;
+                recentVotesList.appendChild(div);
+            });
+        }
         
         // Load admin charts
         google.charts.setOnLoadCallback(() => {
@@ -1148,6 +1183,8 @@
     // LOAD LEDGER DATA
     function loadLedgerData() {
         const tbody = document.getElementById('ledgerBody');
+        if (!tbody) return;
+        
         tbody.innerHTML = '';
         
         // Demo data
@@ -1175,7 +1212,8 @@
     
     // UTILITY FUNCTIONS
     window.updateSlider = function(id, value) {
-        document.getElementById(id).textContent = value + '%';
+        const element = document.getElementById(id);
+        if (element) element.textContent = value + '%';
     };
     
     window.toggleAccordion = function(header) {
@@ -1415,6 +1453,11 @@
     
     // INITIALIZE ON LOAD
     window.addEventListener('load', function() {
+        // Give a tiny delay so transition looks nice
+        setTimeout(() => {
+            document.getElementById('entryModal').classList.add('show');
+        }, 100);
+        
         // Initialize map
         initMap();
         
@@ -1433,20 +1476,24 @@
         setInterval(updateDataFreshness, 60000);
         
         // Initialize search
-        document.getElementById('ledgerSearch').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#ledgerBody tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
+        const ledgerSearch = document.getElementById('ledgerSearch');
+        if (ledgerSearch) {
+            ledgerSearch.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('#ledgerBody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
             });
-        });
+        }
     });
     
     function updateDataFreshness() {
         const hours = Math.floor(Math.random() * 6);
-        document.getElementById('dataFreshness').textContent = `Data synced ${hours}h ago`;
+        const element = document.getElementById('dataFreshness');
+        if (element) element.textContent = `Data synced ${hours}h ago`;
     }
 </script>
 
