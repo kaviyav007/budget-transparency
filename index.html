@@ -167,13 +167,13 @@
             <button class="btn" style="width:100%; border:1px solid #e2e8f0; background:white;" onclick="enterAsGuest()">
                 👁️ Browse as Guest (no vote)
             </button>
-            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="openLoginModal(); closeEntryModal();">
+            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="openLoginModal('user'); closeEntryModal();">
                 📱 Login to Vote (OTP)
             </button>
         </div>
         <div id="entryAdminActions" style="margin-top:18px; display:none;">
-            <button class="btn btn-primary" style="width:100%;" onclick="openLoginModal(); switchToAdminLogin(); closeEntryModal();">
-                🔐 Admin Login (Email/Password)
+            <button class="btn btn-primary" style="width:100%;" onclick="openLoginModal('admin'); closeEntryModal();">
+                🔐 Admin Login (Any Email/Password)
             </button>
         </div>
     </div>
@@ -185,7 +185,7 @@
         <span class="close-modal" onclick="closeLoginModal()">&times;</span>
         <h3 id="modalTitle">User Login</h3>
         <div id="userLoginForm">
-            <input type="tel" id="phoneNumber" placeholder="+91 98765 43210" style="margin-bottom: 15px;">
+            <input type="tel" id="phoneNumber" placeholder="+91 98765 43210 or 9876543210" style="margin-bottom: 15px;">
             <div id="recaptcha-container"></div>
             <button class="btn btn-primary" onclick="sendOTP()" style="width:100%">Send OTP</button>
             <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
@@ -193,8 +193,8 @@
             </p>
         </div>
         <div id="adminLoginForm" style="display: none;">
-            <input type="email" id="adminEmail" placeholder="admin@city.gov.in" style="margin-bottom: 15px;">
-            <input type="password" id="adminPassword" placeholder="Password" style="margin-bottom: 15px;">
+            <input type="email" id="adminEmail" placeholder="any@email.com" style="margin-bottom: 15px;">
+            <input type="password" id="adminPassword" placeholder="any password" style="margin-bottom: 15px;">
             <button class="btn btn-primary" onclick="adminLogin()" style="width:100%">Admin Login</button>
             <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
                 <a href="#" onclick="switchToUserLogin()" style="color: var(--brand);">User Login →</a>
@@ -221,7 +221,7 @@
             <option value="hi">हिंदी</option>
         </select>
         <span id="userStatus" class="user-status" style="display: none;"></span>
-        <button class="btn btn-secondary" id="loginBtn" onclick="openLoginModal()">Login</button>
+        <button class="btn btn-secondary" id="loginBtn" onclick="openLoginModal('user')">Login</button>
         <button class="btn" style="background: var(--danger); color: white;" id="logoutBtn" onclick="logout()" style="display: none;">Logout</button>
     </div>
 </nav>
@@ -268,7 +268,13 @@
                         <th>Vendor</th>
                     </tr>
                 </thead>
-                <tbody id="ledgerBody"></tbody>
+                <tbody id="ledgerBody">
+                    <!-- Demo data -->
+                    <tr><td>2026-01-14</td><td>Education</td><td>Smart School Project</td><td>₹2,50,00,000</td><td>Ward 5</td><td>ABC Constructions</td></tr>
+                    <tr><td>2026-01-13</td><td>Healthcare</td><td>Primary Health Center</td><td>₹1,80,00,000</td><td>Ward 7</td><td>MediCare Builders</td></tr>
+                    <tr><td>2026-01-12</td><td>Infrastructure</td><td>Road Widening</td><td>₹3,20,00,000</td><td>Ward 3</td><td>Roads India Ltd</td></tr>
+                    <tr><td>2026-01-11</td><td>Sanitation</td><td>Sewage Treatment Plant</td><td>₹4,50,00,000</td><td>Ward 9</td><td>CleanWater Tech</td></tr>
+                </tbody>
             </table>
         </div>
 
@@ -308,7 +314,7 @@
             
             <div id="login_prompt" style="text-align: center;">
                 <p id="loginPromptText" style="font-size: 0.9rem; color: var(--slate-600);">Verify your identity via SMS to vote.</p>
-                <button class="btn btn-primary" onclick="openLoginModal()" style="width:100%; margin-top: 20px;">Login to Vote</button>
+                <button class="btn btn-primary" onclick="openLoginModal('user')" style="width:100%; margin-top: 20px;">Login to Vote</button>
             </div>
 
             <div id="voting_controls" style="display: none;">
@@ -364,7 +370,9 @@
                     </div>
                     <div style="margin-top: 20px;">
                         <h5>Recent Votes</h5>
-                        <div id="recentVotesList" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem;"></div>
+                        <div id="recentVotesList" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem;">
+                            <!-- Will be populated dynamically -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -445,7 +453,9 @@
             <div style="font-weight:800;">CivicSpend Assistant</div>
             <button onclick="toggleChatbot()" style="background:transparent; border:none; color:white; font-size:18px; cursor:pointer;">✕</button>
         </div>
-        <div id="chatMessages" style="padding:14px; height:300px; overflow:auto; background:#f8fafc;"></div>
+        <div id="chatMessages" style="padding:14px; height:300px; overflow:auto; background:#f8fafc;">
+            <div><strong>Bot:</strong> Hello! I'm your CivicSpend assistant. Ask me about budget, voting, projects, or how the platform works.</div>
+        </div>
         <div style="padding:12px; display:flex; gap:8px; border-top:1px solid #e2e8f0;">
             <input id="chatInput" type="text" placeholder="Ask about budget, voting, projects..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #e2e8f0;">
             <button class="btn btn-primary" style="padding:10px 14px; border-radius:10px;" onclick="sendChat()">Send</button>
@@ -476,333 +486,3 @@
                 <li>📞 +91 44 2345 6789</li>
             </ul>
         </div>
-    </div>
-    <div class="footer-bottom">
-        © 2026 CivicSpend Pro. All rights reserved. Built with Firebase & Google Charts.
-    </div>
-</footer>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, set, get, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-    // YOUR ORIGINAL FIREBASE CONFIG
-    const firebaseConfig = {
-        apiKey: "AIzaSyAu4vi1x-tRVmHyKyp1JGfVfyBva7A91Jc",
-        authDomain: "local-budget-transparency.firebaseapp.com",
-        databaseURL: "https://local-budget-transparency-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "local-budget-transparency",
-        storageBucket: "local-budget-transparency.appspot.com",
-        messagingSenderId: "781973364320",
-        appId: "1:781973364320:web:566b9e7f6a6a51800ead05"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
-
-    let currentUser = null, isAdmin = false, confirmationResult = null, map = null, currentLanguage = 'en';
-
-    // FULL TRANSLATION SYSTEM
-    const I18N = {
-        en: {
-            heroTitle: "Government Spending, <br><span style='color:var(--brand)'>Decoded for You.</span>",
-            heroSubtitle: "CivicSpend Pro bridges the gap between complex municipal ledgers and citizen understanding. Explore live data, track every rupee, and influence the city's future.",
-            chartTitle: "Current Resource Allocation",
-            voteTitle: "Voice Your Priorities",
-            publicStatsTitle: "Live Voting Stats",
-            publicStatsDesc: "Aggregated stats only (no personal details).",
-            publicTotalVotesLabel: "Total votes",
-            publicTodayVotesLabel: "Votes today",
-            publicAgeTitle: "Age groups",
-            publicGenderTitle: "Gender",
-            projectsTitle: "Infrastructure Projects Map",
-            projectsSubtitle: "Click on markers to see project details and report issues.",
-            howTitle: "How CivicSpend Works",
-            faqTitle: "Common Questions",
-            loginPromptText: "Verify your identity via SMS to vote.",
-            votedTitle: "Identity Verified",
-            votedSubtitle: "Your vote is securely recorded against your phone number."
-        },
-        ta: {
-            heroTitle: "அரசு செலவு, <br><span style='color:var(--brand)'>உங்களுக்காக விளக்கப்பட்டது.</span>",
-            heroSubtitle: "CivicSpend Pro நகராட்சி கணக்குகளை எளிமையாக்குகிறது. தரவைப் பாருங்கள், செலவுகளைப் புரிந்துகொள்ளுங்கள்.",
-            chartTitle: "தற்போதைய நிதி ஒதுக்கீடு",
-            voteTitle: "உங்கள் முன்னுரிமையை தெரிவியுங்கள்",
-            publicStatsTitle: "நேரடி வாக்கு புள்ளிவிவரங்கள்",
-            publicStatsDesc: "மொத்த புள்ளிவிவரங்கள் மட்டும் (தனிப்பட்ட விவரம் இல்லை).",
-            publicTotalVotesLabel: "மொத்த வாக்குகள்",
-            publicTodayVotesLabel: "இன்றைய வாக்குகள்",
-            publicAgeTitle: "வயது குழுக்கள்",
-            publicGenderTitle: "பாலினம்",
-            projectsTitle: "மெய்ய அடிப்படை வேலை அட்டவணை",
-            projectsSubtitle: "மைகர்களை கிளிக் செய்து விவரங்களை பாருங்கள்.",
-            howTitle: "CivicSpend எப்படி வேலை செய்கிறது",
-            faqTitle: "பொதுவான கேள்விகள்"
-        },
-        hi: {
-            heroTitle: "सरकारी खर्च, <br><span style='color:var(--brand)'>आपके लिए सरल.</span>",
-            heroSubtitle: "CivicSpend Pro जटिल नगरपालिका लेजर को आसान बनाता है। डेटा देखें, खर्च समझें।",
-            chartTitle: "वर्तमान संसाधन आवंटन",
-            voteTitle: "अपनी प्राथमिकताएँ बताएं",
-            publicStatsTitle: "लाइव वोट आँकड़े",
-            publicStatsDesc: "केवल समेकित आँकड़े (कोई व्यक्तिगत विवरण नहीं).",
-            publicTotalVotesLabel: "कुल वोट",
-            publicTodayVotesLabel: "आज के वोट",
-            publicAgeTitle: "आयु समूह",
-            publicGenderTitle: "लिंग"
-        }
-    };
-
-    function applyLanguage(lang) {
-        const t = I18N[lang] || I18N.en;
-        ['heroTitle','heroSubtitle','chartTitle','voteTitle','publicStatsTitle','publicStatsDesc','publicTotalVotesLabel','publicTodayVotesLabel','publicAgeTitle','publicGenderTitle','projectsTitle','projectsSubtitle','howTitle','faqTitle','loginPromptText','votedTitle','votedSubtitle'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = t[id] || el.textContent;
-        });
-    }
-
-    // ENTRY MODAL
-    window.chooseEntry = (type) => {
-        document.getElementById(type === 'user' ? 'entryUserActions' : 'entryAdminActions').style.display = 'block';
-    };
-    window.enterAsGuest = () => document.getElementById('entryModal').style.display = 'none';
-    window.openLoginModal = () => document.getElementById('loginModal').style.display = 'block';
-    window.closeLoginModal = () => document.getElementById('loginModal').style.display = 'none';
-
-    // AUTH
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
-    
-    window.sendOTP = () => {
-        const number = document.getElementById('phoneNumber').value;
-        signInWithPhoneNumber(auth, number, window.recaptchaVerifier)
-            .then(result => {
-                confirmationResult = result;
-                document.getElementById('userLoginForm').style.display = 'none';
-                document.getElementById('otpContainer').style.display = 'block';
-            }).catch(e => alert("Error: " + e.message));
-    };
-
-    window.verifyOTP = () => {
-        confirmationResult.confirm(document.getElementById('verificationCode').value)
-            .then(result => {
-                currentUser = result.user; isAdmin = false; updateUI(); closeLoginModal();
-            }).catch(e => alert("Invalid OTP"));
-    };
-
-    window.adminLogin = async () => {
-        try {
-            await signInWithEmailAndPassword(auth, 
-                document.getElementById('adminEmail').value, 
-                document.getElementById('adminPassword').value
-            );
-            isAdmin = true; updateUI(); closeLoginModal();
-        } catch(e) { alert("Admin login failed"); }
-    };
-
-    window.switchToAdminLogin = () => {
-        document.getElementById('userLoginForm').style.display = 'none';
-        document.getElementById('adminLoginForm').style.display = 'block';
-        document.getElementById('modalTitle').textContent = 'Admin Login';
-    };
-    window.switchToUserLogin = () => {
-        document.getElementById('adminLoginForm').style.display = 'none';
-        document.getElementById('userLoginForm').style.display = 'block';
-        document.getElementById('modalTitle').textContent = 'User Login';
-    };
-
-    window.logout = () => {
-        signOut(auth).then(() => { currentUser = null; isAdmin = false; updateUI(); });
-    };
-
-    function updateUI() {
-        const loginBtn = document.getElementById('loginBtn'), logoutBtn = document.getElementById('logoutBtn'),
-              userStatus = document.getElementById('userStatus'), adminLink = document.getElementById('adminLink');
-        
-        if (currentUser) {
-            loginBtn.style.display = 'none'; logoutBtn.style.display = 'inline-block';
-            userStatus.style.display = 'inline';
-            userStatus.innerHTML = isAdmin ? `<span class="admin-badge">ADMIN</span> ${currentUser.email}` : `Hi, ${currentUser.phoneNumber}`;
-            adminLink.style.display = isAdmin ? 'inline' : 'none';
-            document.getElementById('adminDashboard').style.display = isAdmin ? 'block' : 'none';
-            if (!isAdmin) checkUserVote();
-        } else {
-            loginBtn.style.display = 'inline-block'; logoutBtn.style.display = 'none';
-            userStatus.style.display = 'none'; adminLink.style.display = 'none';
-            document.getElementById('login_prompt').style.display = 'block';
-            document.getElementById('voting_controls').style.display = 'none';
-            document.getElementById('already_voted').style.display = 'none';
-        }
-    }
-
-    async function checkUserVote() {
-        const snapshot = await get(ref(db, 'citizen_proposals/' + currentUser.uid));
-        if (snapshot.exists()) {
-            document.getElementById('already_voted').style.display = 'block';
-            document.getElementById('voting_controls').style.display = 'none';
-        } else {
-            document.getElementById('user_welcome').innerText = "Verified: " + currentUser.phoneNumber;
-            document.getElementById('login_prompt').style.display = 'none';
-            document.getElementById('voting_controls').style.display = 'block';
-        }
-    }
-
-    window.sendFeedback = async () => {
-        if (!currentUser || isAdmin) return;
-        const gender = document.getElementById('genderSelect').value, ageGroup = document.getElementById('ageGroupSelect').value;
-        if (!gender || !ageGroup) return alert('Please select gender and age group');
-        
-        const voteData = {
-            phone: currentUser.phoneNumber, uid: currentUser.uid, gender, ageGroup,
-            edu: document.getElementById('edu_p').value, infra: document.getElementById('inf_p').value,
-            health: document.getElementById('health_p').value, san: document.getElementById('san_p').value,
-            reason: document.getElementById('voteReason').value, timestamp: Date.now()
-        };
-        
-        await set(ref(db, 'citizen_proposals/' + currentUser.uid), voteData);
-        alert("✅ Vote submitted!"); checkUserVote(); loadPublicStats(); loadAdminStats();
-    };
-
-    // PUBLIC STATS (Everyone sees)
-    async function loadPublicStats() {
-        try {
-            const snapshot = await get(ref(db, 'citizen_proposals'));
-            if (!snapshot.exists()) return;
-            
-            const votes = Object.values(snapshot.val()), today = new Date().setHours(0,0,0,0);
-            const ageCounts = {}, genderCounts = {};
-            
-            votes.forEach(v => {
-                if (v.ageGroup) ageCounts[v.ageGroup] = (ageCounts[v.ageGroup] || 0) + 1;
-                if (v.gender) genderCounts[v.gender] = (genderCounts[v.gender] || 0) + 1;
-            });
-            
-            document.getElementById('publicTotalVotes').textContent = votes.length;
-            document.getElementById('publicTodayVotes').textContent = votes.filter(v => new Date(v.timestamp).setHours(0,0,0,0) === today).length;
-            
-            // Charts
-            const ageData = [['Age', 'Votes', {role:'style'}], ...Object.entries(ageCounts).map(([k,v]) => [k,v,'#2563eb'])];
-            const genderData = [['Gender', 'Votes', {role:'style'}], ...Object.entries(genderCounts).map(([k,v]) => [k.charAt(0).toUpperCase()+k.slice(1),v,'#10b981'])];
-            
-            google.charts.setOnLoadCallback(() => {
-                new google.visualization.ColumnChart(document.getElementById('publicAgeChart')).draw(google.visualization.arrayToDataTable(ageData), {legend:'none'});
-                new google.visualization.ColumnChart(document.getElementById('publicGenderChart')).draw(google.visualization.arrayToDataTable(genderData), {legend:'none'});
-            });
-        } catch(e) {
-            console.log("Public stats unavailable:", e);
-        }
-    }
-
-    // ADMIN STATS
-    async function loadAdminStats() {
-        if (!isAdmin) return;
-        try {
-            const snapshot = await get(ref(db, 'citizen_proposals'));
-            const votes = Object.values(snapshot.val() || {}), today = new Date().setHours(0,0,0,0);
-            
-            document.getElementById('totalVotes').textContent = votes.length;
-            document.getElementById('todayVotes').textContent = votes.filter(v => new Date(v.timestamp || 0).setHours(0,0,0,0) === today).length;
-            document.getElementById('maleVotes').textContent = votes.filter(v => v.gender === 'male').length;
-            document.getElementById('femaleVotes').textContent = votes.filter(v => v.gender === 'female').length;
-            
-            // Charts and recent votes...
-        } catch(e) {}
-    }
-
-    // MAP
-    function initMap() {
-        map = L.map('project-map').setView([10.9072, 78.1369], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    }
-
-    // CHARTS & DATA
-    google.charts.load('current', {'packages':['corechart']});
-    onValue(ref(db, 'budgets/2024'), snapshot => {
-        const val = snapshot.val();
-        if (val) {
-            google.charts.setOnLoadCallback(() => {
-                const data = google.visualization.arrayToDataTable([
-                    ['Category', 'Amount (₹ Cr)', {role: 'style'}],
-                    ['Education', val.education || 0, '#2563eb'],
-                    ['Healthcare', val.health || 0, '#10b981'],
-                    ['Infrastructure', val.roads || 0, '#f59e0b'],
-                    ['Sanitation', val.water || 0, '#ef4444']
-                ]);
-                new google.visualization.PieChart(document.getElementById('main_chart')).draw(data, {
-                    pieHole: 0.6, chartArea: {width:'90%', height:'80%'}, legend: {position: 'bottom'}, backgroundColor: 'transparent'
-                });
-            });
-        }
-    });
-
-    // UTILITIES
-    window.updateSlider = (id, value) => document.getElementById(id).textContent = value + '%';
-    window.toggleAccordion = header => {
-        const content = header.nextElementSibling;
-        content.classList.toggle('active');
-        header.lastElementChild.textContent = content.classList.contains('active') ? '−' : '+';
-    };
-    window.downloadCSV = () => {
-        const csv = 'Date,Category,Description,Amount,Ward,Vendor\n2026-01-14,Education,Smart School,25000000,Ward 5,ABC Constructions';
-        const blob = new Blob([csv], {type: 'text/csv'}), url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'ledger.csv'; a.click();
-    };
-    window.downloadJSON = () => {
-        const data = {ledger: [['2026-01-14','Education','Smart School','25000000','Ward 5','ABC Constructions']]};
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}), url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'ledger.json'; a.click();
-    };
-    
-    window.changeLanguage = () => {
-        currentLanguage = document.getElementById('languageSelect').value;
-        applyLanguage(currentLanguage);
-    };
-
-    // CHATBOT
-    window.toggleChatbot = () => {
-        const panel = document.getElementById('chatbotPanel');
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    };
-    window.sendChat = () => {
-        const input = document.getElementById('chatInput'), msg = input.value;
-        if (!msg) return;
-        document.getElementById('chatMessages').innerHTML += `<div><strong>You:</strong> ${msg}</div>`;
-        input.value = '';
-        setTimeout(() => {
-            document.getElementById('chatMessages').innerHTML += `<div><strong>Bot:</strong> Great question about ${msg.split(' ')[0]}! Check the FAQ or dashboard for details. Need specific help?</div>`;
-            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
-        }, 500);
-    };
-
-    // INIT
-    onAuthStateChanged(auth, user => {
-        currentUser = user;
-        if (user) {
-            get(ref(db, 'admins/' + user.uid)).then(s => {
-                isAdmin = s.exists();
-                updateUI();
-            });
-        } else updateUI();
-    });
-
-    window.addEventListener('load', () => {
-        initMap();
-        loadPublicStats();
-        updateDataFreshness();
-        setInterval(updateDataFreshness, 60000);
-        applyLanguage('en');
-        document.getElementById('ledgerSearch').addEventListener('input', e => {
-            const tbody = document.getElementById('ledgerBody');
-            tbody.innerHTML = ''; // Simplified for demo
-        });
-    });
-
-    function updateDataFreshness() {
-        const hours = Math.floor(Math.random() * 6);
-        document.getElementById('dataFreshness').textContent = `Data synced ${hours}h ago`;
-    }
-</script>
-
-</body>
-</html>
