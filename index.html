@@ -580,33 +580,651 @@
     </div>
 </footer>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, set, get, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-    // YOUR FIREBASE CONFIG
-    const firebaseConfig = {
-        apiKey: "AIzaSyAu4vi1x-tRVmHyKyp1JGfVfyBva7A91Jc",
-        authDomain: "local-budget-transparency.firebaseapp.com",
-        databaseURL: "https://local-budget-transparency-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "local-budget-transparency",
-        storageBucket: "local-budget-transparency.appspot.com",
-        messagingSenderId: "781973364320",
-        appId: "1:781973364320:web:566b9e7f6a6a51800ead05"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
-
+<script>
+    // FIXED: SIMPLE JAVASCRIPT FUNCTIONS (No Firebase dependency issues)
+    
+    // Global variables
     let currentUser = null;
     let isAdmin = false;
-    let confirmationResult = null;
-    let map = null;
     let currentLanguage = 'en';
     let mapMarkers = [];
+    let map = null;
 
+    // FIXED: ENTRY MODAL FUNCTIONS
+    window.chooseEntry = function(type) {
+        // Hide both action sections first
+        document.getElementById('entryUserActions').style.display = 'none';
+        document.getElementById('entryAdminActions').style.display = 'none';
+        
+        // Show the selected one
+        if (type === 'user') {
+            document.getElementById('entryUserActions').style.display = 'block';
+        } else if (type === 'admin') {
+            document.getElementById('entryAdminActions').style.display = 'block';
+        }
+    };
+    
+    window.closeEntryModal = function() {
+        document.getElementById('entryModal').style.display = 'none';
+    };
+    
+    // FIXED: Browse as Guest function
+    window.enterAsGuest = function() {
+        // Clear any existing user data
+        currentUser = null;
+        isAdmin = false;
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('isAdmin');
+        
+        // Close the entry modal
+        closeEntryModal();
+        
+        // Update UI for guest
+        updateUI();
+        
+        // Load public stats
+        loadPublicStats();
+        
+        console.log("Guest mode activated");
+    };
+    
+    // LOGIN FUNCTIONS
+    window.openLoginModal = function() {
+        document.getElementById('loginModal').style.display = 'block';
+    };
+    
+    window.closeLoginModal = function() {
+        document.getElementById('loginModal').style.display = 'none';
+    };
+    
+    window.openAdminLogin = function() {
+        document.getElementById('adminLoginModal').style.display = 'block';
+    };
+    
+    window.closeAdminLoginModal = function() {
+        document.getElementById('adminLoginModal').style.display = 'none';
+    };
+    
+    // USER OTP FUNCTIONS
+    window.sendOTP = async function() {
+        const phoneNumber = document.getElementById('phoneNumber').value;
+        
+        if (!phoneNumber || phoneNumber.length < 10) {
+            alert('Please enter a valid phone number');
+            return;
+        }
+        
+        // Simulate OTP sending
+        document.getElementById('userLoginForm').style.display = 'none';
+        document.getElementById('otpContainer').style.display = 'block';
+        alert('Demo: OTP sent to ' + phoneNumber + '\nUse 123456 as OTP');
+    };
+    
+    window.verifyOTP = async function() {
+        const otp = document.getElementById('verificationCode').value;
+        const phoneNumber = document.getElementById('phoneNumber').value;
+        
+        if (otp === '123456') {
+            currentUser = {
+                uid: 'user-' + Date.now(),
+                phoneNumber: phoneNumber || '+919876543210',
+                displayName: 'Demo User'
+            };
+            isAdmin = false;
+            
+            // Store in localStorage
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            localStorage.setItem('isAdmin', 'false');
+            
+            // Close modals
+            closeLoginModal();
+            closeEntryModal();
+            
+            // Update UI
+            updateUI();
+            
+            // Check if user has voted
+            checkUserVote();
+            
+            // Load stats
+            loadPublicStats();
+            
+            alert('✅ Login successful!');
+        } else {
+            alert('❌ Invalid OTP. Use 123456 for demo.');
+        }
+    };
+    
+    // ADMIN LOGIN - Accepts ANY email/password
+    window.adminLogin = function() {
+        const email = document.getElementById('adminEmail').value || 'admin@civicspend.gov';
+        const password = document.getElementById('adminPassword').value || 'admin123';
+        
+        currentUser = {
+            uid: 'admin-' + Date.now(),
+            email: email,
+            displayName: 'Admin User'
+        };
+        isAdmin = true;
+        
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        localStorage.setItem('isAdmin', 'true');
+        
+        // Close modals
+        closeAdminLoginModal();
+        closeEntryModal();
+        
+        updateUI();
+        loadAdminStats();
+        alert('✅ Admin login successful!');
+    };
+    
+    // LOGOUT
+    window.logout = function() {
+        currentUser = null;
+        isAdmin = false;
+        
+        // Clear localStorage
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('isAdmin');
+        
+        // Update UI
+        updateUI();
+        
+        // Load public stats
+        loadPublicStats();
+        
+        // Show entry modal again
+        document.getElementById('entryModal').style.display = 'block';
+    };
+    
+    // UPDATE UI
+    function updateUI() {
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userStatus = document.getElementById('userStatus');
+        const adminLink = document.getElementById('adminLink');
+        
+        // Check localStorage for saved login
+        const savedUser = localStorage.getItem('currentUser');
+        const savedAdmin = localStorage.getItem('isAdmin');
+        
+        if (savedUser && !currentUser) {
+            currentUser = JSON.parse(savedUser);
+            isAdmin = savedAdmin === 'true';
+        }
+        
+        if (currentUser) {
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'inline-block';
+            userStatus.style.display = 'inline';
+            
+            if (isAdmin) {
+                userStatus.innerHTML = `<span class="admin-badge">ADMIN</span> ${currentUser.email || 'Admin'}`;
+                adminLink.style.display = 'inline';
+                document.getElementById('adminDashboard').style.display = 'block';
+                
+                // Hide voting interface for admin
+                document.getElementById('login_prompt').style.display = 'none';
+                document.getElementById('voting_controls').style.display = 'none';
+                document.getElementById('already_voted').style.display = 'none';
+                
+                // Load admin stats
+                loadAdminStats();
+            } else {
+                userStatus.innerHTML = `👤 ${currentUser.phoneNumber || 'User'}`;
+                adminLink.style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'none';
+                
+                // Check if user has voted
+                checkUserVote();
+            }
+        } else {
+            // Guest or not logged in
+            loginBtn.style.display = 'inline-block';
+            logoutBtn.style.display = 'none';
+            userStatus.style.display = 'none';
+            adminLink.style.display = 'none';
+            document.getElementById('adminDashboard').style.display = 'none';
+            
+            // Show login prompt in vote card
+            document.getElementById('login_prompt').style.display = 'block';
+            document.getElementById('voting_controls').style.display = 'none';
+            document.getElementById('already_voted').style.display = 'none';
+        }
+    }
+    
+    // CHECK USER VOTE
+    function checkUserVote() {
+        if (!currentUser || isAdmin) return;
+        
+        // Check localStorage for demo votes
+        const userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
+        const hasVoted = userVotes[currentUser.uid];
+        
+        if (hasVoted) {
+            document.getElementById('already_voted').style.display = 'block';
+            document.getElementById('voting_controls').style.display = 'none';
+            document.getElementById('login_prompt').style.display = 'none';
+        } else {
+            document.getElementById('user_welcome').innerText = "Verified: " + (currentUser.phoneNumber || 'User');
+            document.getElementById('login_prompt').style.display = 'none';
+            document.getElementById('voting_controls').style.display = 'block';
+            document.getElementById('already_voted').style.display = 'none';
+        }
+    }
+    
+    // SEND FEEDBACK (VOTE)
+    window.sendFeedback = function() {
+        if (!currentUser || isAdmin) {
+            alert('Please login as a user to vote');
+            return;
+        }
+        
+        const gender = document.getElementById('genderSelect').value;
+        const ageGroup = document.getElementById('ageGroupSelect').value;
+        const ward = document.getElementById('wardSelect').value;
+        
+        if (!gender || !ageGroup || !ward) {
+            alert('Please select gender, age group, and ward');
+            return;
+        }
+        
+        const voteData = {
+            uid: currentUser.uid,
+            phone: currentUser.phoneNumber || 'Not provided',
+            gender: gender,
+            ageGroup: ageGroup,
+            ward: ward,
+            edu: document.getElementById('edu_p').value,
+            infra: document.getElementById('inf_p').value,
+            health: document.getElementById('health_p').value,
+            san: document.getElementById('san_p').value,
+            reason: document.getElementById('voteReason').value || 'No reason provided',
+            followUpdates: document.getElementById('followUpdates').checked,
+            timestamp: Date.now(),
+            date: new Date().toISOString().split('T')[0]
+        };
+        
+        // Store vote in localStorage
+        const userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
+        userVotes[currentUser.uid] = voteData;
+        localStorage.setItem('userVotes', JSON.stringify(userVotes));
+        
+        alert('✅ Vote submitted successfully!');
+        checkUserVote();
+        loadPublicStats();
+        
+        if (isAdmin) {
+            loadAdminStats();
+        }
+    };
+    
+    // LOAD PUBLIC STATS
+    function loadPublicStats() {
+        const userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
+        const votes = Object.values(userVotes);
+        const today = new Date().toISOString().split('T')[0];
+        
+        const ageCounts = { '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 };
+        const genderCounts = { 'male': 0, 'female': 0, 'other': 0 };
+        let totalEdu = 0, totalInfra = 0;
+        
+        votes.forEach(v => {
+            if (v.ageGroup && ageCounts[v.ageGroup] !== undefined) {
+                ageCounts[v.ageGroup]++;
+            }
+            if (v.gender && genderCounts[v.gender] !== undefined) {
+                genderCounts[v.gender]++;
+            }
+            if (v.edu) totalEdu += parseInt(v.edu);
+            if (v.infra) totalInfra += parseInt(v.infra);
+        });
+        
+        const todayVotes = votes.filter(v => v.date === today).length;
+        
+        document.getElementById('publicTotalVotes').textContent = votes.length;
+        document.getElementById('publicTodayVotes').textContent = todayVotes;
+        document.getElementById('publicAvgEducation').textContent = votes.length > 0 ? Math.round(totalEdu / votes.length) + '%' : '0%';
+        document.getElementById('publicAvgInfra').textContent = votes.length > 0 ? Math.round(totalInfra / votes.length) + '%' : '0%';
+        
+        // Load charts
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(() => {
+            const ageData = google.visualization.arrayToDataTable([
+                ['Age', 'Votes'],
+                ['18-25', ageCounts['18-25']],
+                ['26-35', ageCounts['26-35']],
+                ['36-50', ageCounts['36-50']],
+                ['50+', ageCounts['50+']]
+            ]);
+            
+            const genderData = google.visualization.arrayToDataTable([
+                ['Gender', 'Votes'],
+                ['Male', genderCounts['male']],
+                ['Female', genderCounts['female']],
+                ['Other', genderCounts['other']]
+            ]);
+            
+            // Budget chart
+            const budgetData = google.visualization.arrayToDataTable([
+                ['Category', 'Amount (₹ Cr)'],
+                ['Education', 45],
+                ['Healthcare', 32],
+                ['Infrastructure', 58],
+                ['Sanitation', 25]
+            ]);
+            
+            // Year-over-year comparison
+            const yearData = google.visualization.arrayToDataTable([
+                ['Category', '2023', '2024'],
+                ['Education', 42, 45],
+                ['Healthcare', 30, 32],
+                ['Infrastructure', 52, 58],
+                ['Sanitation', 22, 25]
+            ]);
+            
+            // Budget vs Actual
+            const budgetActualData = google.visualization.arrayToDataTable([
+                ['Category', 'Budgeted', 'Actual'],
+                ['Education', 48, 45],
+                ['Healthcare', 35, 32],
+                ['Infrastructure', 60, 58],
+                ['Sanitation', 27, 25]
+            ]);
+            
+            // Draw charts
+            new google.visualization.PieChart(document.getElementById('main_chart')).draw(budgetData, {
+                pieHole: 0.6,
+                chartArea: {width: '90%', height: '80%'},
+                legend: {position: 'bottom'},
+                backgroundColor: 'transparent',
+                colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
+            });
+            
+            new google.visualization.ColumnChart(document.getElementById('year_comparison_chart')).draw(yearData, {
+                title: 'Year-over-Year Comparison (₹ Cr)',
+                legend: {position: 'top'},
+                backgroundColor: 'transparent',
+                colors: ['#94a3b8', '#2563eb']
+            });
+            
+            new google.visualization.ColumnChart(document.getElementById('budget_actual_chart')).draw(budgetActualData, {
+                title: 'Budget vs Actual Spending (₹ Cr)',
+                legend: {position: 'top'},
+                backgroundColor: 'transparent',
+                colors: ['#f59e0b', '#10b981']
+            });
+            
+            new google.visualization.ColumnChart(document.getElementById('publicAgeChart')).draw(ageData, {
+                legend: 'none',
+                backgroundColor: 'transparent',
+                colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
+            });
+            
+            new google.visualization.ColumnChart(document.getElementById('publicGenderChart')).draw(genderData, {
+                legend: 'none',
+                backgroundColor: 'transparent',
+                colors: ['#2563eb', '#10b981', '#f59e0b']
+            });
+        });
+    }
+    
+    // LOAD ADMIN STATS
+    function loadAdminStats() {
+        if (!isAdmin) return;
+        
+        const userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
+        const votes = Object.values(userVotes);
+        const today = new Date().toISOString().split('T')[0];
+        
+        const ageCounts = { '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 };
+        const genderCounts = { 'male': 0, 'female': 0, 'other': 0 };
+        const wardCounts = { 'Ward 1': 0, 'Ward 2': 0, 'Ward 3': 0, 'Ward 4': 0, 'Ward 5': 0 };
+        let totalEdu = 0, totalInfra = 0, totalHealth = 0, totalSan = 0;
+        
+        votes.forEach(v => {
+            if (v.ageGroup && ageCounts[v.ageGroup] !== undefined) {
+                ageCounts[v.ageGroup]++;
+            }
+            if (v.gender && genderCounts[v.gender] !== undefined) {
+                genderCounts[v.gender]++;
+            }
+            if (v.ward && wardCounts[v.ward] !== undefined) {
+                wardCounts[v.ward]++;
+            }
+            if (v.edu) totalEdu += parseInt(v.edu);
+            if (v.infra) totalInfra += parseInt(v.infra);
+            if (v.health) totalHealth += parseInt(v.health);
+            if (v.san) totalSan += parseInt(v.san);
+        });
+        
+        const todayVotes = votes.filter(v => v.date === today).length;
+        
+        document.getElementById('totalVotes').textContent = votes.length;
+        document.getElementById('todayVotes').textContent = todayVotes;
+        document.getElementById('maleVotes').textContent = genderCounts['male'];
+        document.getElementById('femaleVotes').textContent = genderCounts['female'];
+        document.getElementById('ward1Votes').textContent = wardCounts['Ward 1'];
+        document.getElementById('ward2Votes').textContent = wardCounts['Ward 2'];
+        
+        // Update average priorities
+        if (votes.length > 0) {
+            document.getElementById('avgEdu').textContent = Math.round(totalEdu / votes.length) + '%';
+            document.getElementById('avgInfra').textContent = Math.round(totalInfra / votes.length) + '%';
+            document.getElementById('avgHealth').textContent = Math.round(totalHealth / votes.length) + '%';
+            document.getElementById('avgSan').textContent = Math.round(totalSan / votes.length) + '%';
+        }
+        
+        // Update recent votes list
+        const recentVotesList = document.getElementById('recentVotesList');
+        recentVotesList.innerHTML = '';
+        
+        const recentVotes = votes.slice(-10).reverse();
+        recentVotes.forEach(vote => {
+            const div = document.createElement('div');
+            div.style.padding = '8px';
+            div.style.borderBottom = '1px solid #e2e8f0';
+            div.innerHTML = `
+                <strong>${vote.phone || 'Unknown'}</strong><br>
+                <small>${vote.ward || 'No ward'} | ${vote.ageGroup || 'No age'} | ${vote.gender || 'No gender'}</small><br>
+                <small>Edu: ${vote.edu}%, Infra: ${vote.infra}%, Health: ${vote.health}%, San: ${vote.san}%</small>
+            `;
+            recentVotesList.appendChild(div);
+        });
+        
+        // Load admin charts
+        google.charts.setOnLoadCallback(() => {
+            const ageData = google.visualization.arrayToDataTable([
+                ['Age', 'Votes'],
+                ['18-25', ageCounts['18-25']],
+                ['26-35', ageCounts['26-35']],
+                ['36-50', ageCounts['36-50']],
+                ['50+', ageCounts['50+']]
+            ]);
+            
+            const genderData = google.visualization.arrayToDataTable([
+                ['Gender', 'Votes'],
+                ['Male', genderCounts['male']],
+                ['Female', genderCounts['female']],
+                ['Other', genderCounts['other']]
+            ]);
+            
+            if (document.getElementById('ageChart')) {
+                new google.visualization.PieChart(document.getElementById('ageChart')).draw(ageData, {
+                    title: 'Age Distribution',
+                    backgroundColor: 'transparent',
+                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
+                });
+            }
+            
+            if (document.getElementById('genderChart')) {
+                new google.visualization.PieChart(document.getElementById('genderChart')).draw(genderData, {
+                    title: 'Gender Distribution',
+                    backgroundColor: 'transparent',
+                    colors: ['#2563eb', '#10b981', '#f59e0b']
+                });
+            }
+        });
+    }
+    
+    // INITIALIZE MAP
+    function initMap() {
+        map = L.map('project-map').setView([12.9716, 77.5946], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Add project markers
+        const projects = [
+            { lat: 12.9716, lng: 77.5946, title: 'Smart School Project', desc: 'New digital literacy wing', ward: 'Ward 5', status: 'completed', amount: '₹2.5 Cr' },
+            { lat: 12.9816, lng: 77.5846, title: 'Metro Expansion', desc: 'New metro line construction', ward: 'Ward 3', status: 'progress', amount: '₹15 Cr' },
+            { lat: 12.9616, lng: 77.6046, title: 'Waste Management Plant', desc: 'New recycling facility', ward: 'Ward 2', status: 'planned', amount: '₹8 Cr' },
+            { lat: 12.9766, lng: 77.5996, title: 'Public Park Development', desc: 'Green space with solar lighting', ward: 'Ward 4', status: 'progress', amount: '₹3.2 Cr' },
+            { lat: 12.9666, lng: 77.5896, title: 'Water Pipeline Upgrade', desc: '5km pipeline replacement', ward: 'Ward 1', status: 'completed', amount: '₹4.5 Cr' }
+        ];
+        
+        projects.forEach(project => {
+            let markerColor = 'blue';
+            if (project.status === 'completed') markerColor = 'green';
+            if (project.status === 'progress') markerColor = 'orange';
+            if (project.status === 'planned') markerColor = 'gray';
+            
+            const marker = L.marker([project.lat, project.lng], {
+                icon: L.divIcon({
+                    className: 'custom-icon',
+                    html: `<div style="background:${markerColor}; width:20px; height:20px; border-radius:50%; border:2px solid white;"></div>`
+                })
+            }).addTo(map);
+            
+            marker.bindPopup(`
+                <b>${project.title}</b><br>
+                ${project.desc}<br>
+                <strong>Ward:</strong> ${project.ward}<br>
+                <strong>Status:</strong> ${project.status}<br>
+                <strong>Budget:</strong> ${project.amount}<br>
+                <button onclick="reportIssue('${project.title}')" style="margin-top:5px; padding:5px 10px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer;">
+                    Report Issue
+                </button>
+            `);
+            
+            mapMarkers.push({ marker, project });
+        });
+    }
+    
+    window.filterMapByWard = function() {
+        const ward = document.getElementById('wardFilter').value;
+        mapMarkers.forEach(item => {
+            if (ward === 'all' || item.project.ward.includes(ward)) {
+                item.marker.addTo(map);
+            } else {
+                map.removeLayer(item.marker);
+            }
+        });
+    };
+    
+    window.filterMapByStatus = function() {
+        const status = document.getElementById('statusFilter').value;
+        mapMarkers.forEach(item => {
+            if (status === 'all' || item.project.status === status) {
+                item.marker.addTo(map);
+            } else {
+                map.removeLayer(item.marker);
+            }
+        });
+    };
+    
+    window.reportIssue = function(projectTitle) {
+        if (!currentUser) {
+            alert('Please login to report an issue');
+            return;
+        }
+        const issue = prompt(`Describe the issue with ${projectTitle}:`);
+        if (issue) {
+            alert('Thank you! Your report has been submitted.');
+        }
+    };
+    
+    // LOAD LEDGER DATA
+    function loadLedgerData() {
+        const tbody = document.getElementById('ledgerBody');
+        tbody.innerHTML = '';
+        
+        // Demo data
+        const demoData = [
+            ['2026-01-14', 'Education', 'Smart School Project', '₹2,50,00,000', 'Ward 5', 'ABC Constructions', 'Completed'],
+            ['2026-01-13', 'Healthcare', 'Primary Health Center', '₹1,80,00,000', 'Ward 7', 'MediCare Builders', 'In Progress'],
+            ['2026-01-12', 'Infrastructure', 'Road Widening', '₹3,20,00,000', 'Ward 3', 'Roads India Ltd', 'Completed'],
+            ['2026-01-11', 'Sanitation', 'Sewage Treatment Plant', '₹4,50,00,000', 'Ward 9', 'CleanWater Tech', 'Planned']
+        ];
+        
+        demoData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${row[0]}</td>
+                <td>${row[1]}</td>
+                <td>${row[2]}</td>
+                <td>${row[3]}</td>
+                <td>${row[4]}</td>
+                <td>${row[5]}</td>
+                <td><span style="padding:4px 8px; border-radius:4px; background:#dcfce7; color:#166534; font-size:0.8rem;">${row[6]}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+    
+    // UTILITY FUNCTIONS
+    window.updateSlider = function(id, value) {
+        document.getElementById(id).textContent = value + '%';
+    };
+    
+    window.toggleAccordion = function(header) {
+        const content = header.nextElementSibling;
+        content.classList.toggle('active');
+        header.lastElementChild.textContent = content.classList.contains('active') ? '−' : '+';
+    };
+    
+    window.downloadCSV = function() {
+        const csv = 'Date,Category,Description,Amount,Ward,Vendor,Status\n' +
+                   '2026-01-14,Education,Smart School Project,25000000,Ward 5,ABC Constructions,Completed\n' +
+                   '2026-01-13,Healthcare,Primary Health Center,18000000,Ward 7,MediCare Builders,In Progress\n' +
+                   '2026-01-12,Infrastructure,Road Widening,32000000,Ward 3,Roads India Ltd,Completed\n' +
+                   '2026-01-11,Sanitation,Sewage Treatment Plant,45000000,Ward 9,CleanWater Tech,Planned';
+        
+        const blob = new Blob([csv], {type: 'text/csv'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'civicspend_ledger.csv';
+        a.click();
+    };
+    
+    window.downloadJSON = function() {
+        const data = {
+            ledger: [
+                { date: '2026-01-14', category: 'Education', description: 'Smart School Project', amount: 25000000, ward: 'Ward 5', vendor: 'ABC Constructions', status: 'Completed' },
+                { date: '2026-01-13', category: 'Healthcare', description: 'Primary Health Center', amount: 18000000, ward: 'Ward 7', vendor: 'MediCare Builders', status: 'In Progress' },
+                { date: '2026-01-12', category: 'Infrastructure', description: 'Road Widening', amount: 32000000, ward: 'Ward 3', vendor: 'Roads India Ltd', status: 'Completed' },
+                { date: '2026-01-11', category: 'Sanitation', description: 'Sewage Treatment Plant', amount: 45000000, ward: 'Ward 9', vendor: 'CleanWater Tech', status: 'Planned' }
+            ]
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'civicspend_data.json';
+        a.click();
+    };
+    
+    window.downloadPDF = function() {
+        alert('PDF report would be generated and downloaded. This is a demo feature.');
+    };
+    
+    window.exportVoteData = function() {
+        alert('Vote data export would be generated. This is a demo feature.');
+    };
+    
     // TRANSLATION SYSTEM
     const I18N = {
         en: {
@@ -699,7 +1317,12 @@
             sanLabel: "स्वच्छता"
         }
     };
-
+    
+    window.changeLanguage = function() {
+        currentLanguage = document.getElementById('languageSelect').value;
+        applyLanguage(currentLanguage);
+    };
+    
     function applyLanguage(lang) {
         const t = I18N[lang] || I18N.en;
         const elements = [
@@ -726,728 +1349,13 @@
             }
         });
     }
-
-    // ENTRY MODAL FUNCTIONS
-    window.chooseEntry = function(type) {
-        document.getElementById('entryUserActions').style.display = 'none';
-        document.getElementById('entryAdminActions').style.display = 'none';
-        
-        if (type === 'user') {
-            document.getElementById('entryUserActions').style.display = 'block';
-        } else if (type === 'admin') {
-            document.getElementById('entryAdminActions').style.display = 'block';
-        }
-    };
-
-    window.closeEntryModal = function() {
-        document.getElementById('entryModal').style.display = 'none';
-    };
-
-    window.enterAsGuest = function() {
-        currentUser = null;
-        isAdmin = false;
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('isAdmin');
-        closeEntryModal();
-        updateUI();
-        loadPublicStats();
-    };
-
-    // LOGIN FUNCTIONS
-    window.openLoginModal = function() {
-        document.getElementById('loginModal').style.display = 'block';
-    };
-
-    window.closeLoginModal = function() {
-        document.getElementById('loginModal').style.display = 'none';
-    };
-
-    window.openAdminLogin = function() {
-        document.getElementById('adminLoginModal').style.display = 'block';
-    };
-
-    window.closeAdminLoginModal = function() {
-        document.getElementById('adminLoginModal').style.display = 'none';
-    };
-
-    // USER OTP FUNCTIONS
-    window.sendOTP = async function() {
-        const phoneNumber = document.getElementById('phoneNumber').value;
-        
-        if (!phoneNumber || phoneNumber.length < 10) {
-            alert('Please enter a valid phone number');
-            return;
-        }
-        
-        const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+91${phoneNumber.replace(/\D/g, '')}`;
-        
-        try {
-            // Initialize recaptcha
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible'
-            });
-            
-            const appVerifier = window.recaptchaVerifier;
-            const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
-            confirmationResult = result;
-            
-            document.getElementById('userLoginForm').style.display = 'none';
-            document.getElementById('otpContainer').style.display = 'block';
-            
-            alert('Demo: OTP sent to ' + formattedPhone + '\nUse 123456 for demo');
-            
-        } catch (error) {
-            console.error("Error sending OTP:", error);
-            
-            // Demo mode - simulate OTP send
-            confirmationResult = {
-                confirm: async (code) => {
-                    if (code === "123456") {
-                        currentUser = {
-                            uid: 'demo-user-' + Date.now(),
-                            phoneNumber: formattedPhone,
-                            displayName: 'Demo User'
-                        };
-                        isAdmin = false;
-                        
-                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                        localStorage.setItem('isAdmin', 'false');
-                        
-                        updateUI();
-                        closeLoginModal();
-                        checkUserVote();
-                        return { user: currentUser };
-                    } else {
-                        throw new Error("Invalid OTP");
-                    }
-                }
-            };
-            
-            document.getElementById('userLoginForm').style.display = 'none';
-            document.getElementById('otpContainer').style.display = 'block';
-            alert('Demo: Simulating OTP send to ' + formattedPhone + '\nUse 123456 as OTP');
-        }
-    };
-
-    window.verifyOTP = async function() {
-        const code = document.getElementById('verificationCode').value;
-        
-        if (!code || code.length !== 6) {
-            alert('Please enter a 6-digit OTP');
-            return;
-        }
-        
-        try {
-            const result = await confirmationResult.confirm(code);
-            currentUser = result.user;
-            isAdmin = false;
-            
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            localStorage.setItem('isAdmin', 'false');
-            
-            updateUI();
-            closeLoginModal();
-            checkUserVote();
-            alert('Login successful!');
-            
-        } catch (error) {
-            // Demo fallback
-            if (code === "123456") {
-                currentUser = {
-                    uid: 'demo-user-' + Date.now(),
-                    phoneNumber: document.getElementById('phoneNumber').value || '+919876543210',
-                    displayName: 'Demo User'
-                };
-                isAdmin = false;
-                
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                localStorage.setItem('isAdmin', 'false');
-                
-                updateUI();
-                closeLoginModal();
-                checkUserVote();
-                alert('Demo login successful!');
-            } else {
-                alert('Invalid OTP. Use 123456 for demo');
-            }
-        }
-    };
-
-    // ADMIN LOGIN - Accepts ANY email/password
-    window.adminLogin = function() {
-        const email = document.getElementById('adminEmail').value || 'admin@civicspend.gov';
-        const password = document.getElementById('adminPassword').value || 'admin123';
-        
-        // Set admin credentials
-        currentUser = {
-            uid: 'admin-' + Date.now(),
-            email: email,
-            displayName: 'Admin User'
-        };
-        isAdmin = true;
-        
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        localStorage.setItem('isAdmin', 'true');
-        
-        updateUI();
-        closeAdminLoginModal();
-        loadAdminStats();
-        alert('✅ Admin login successful!');
-    };
-
-    // LOGOUT
-    window.logout = function() {
-        signOut(auth).catch(e => console.log(e));
-        
-        currentUser = null;
-        isAdmin = false;
-        
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('isAdmin');
-        
-        updateUI();
-        document.getElementById('entryModal').style.display = 'block';
-        loadPublicStats();
-    };
-
-    // UPDATE UI
-    function updateUI() {
-        const loginBtn = document.getElementById('loginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const userStatus = document.getElementById('userStatus');
-        const adminLink = document.getElementById('adminLink');
-        
-        // Check localStorage
-        const savedUser = localStorage.getItem('currentUser');
-        const savedAdmin = localStorage.getItem('isAdmin');
-        
-        if (savedUser && !currentUser) {
-            currentUser = JSON.parse(savedUser);
-            isAdmin = savedAdmin === 'true';
-        }
-        
-        if (currentUser) {
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = 'inline-block';
-            userStatus.style.display = 'inline';
-            
-            if (isAdmin) {
-                userStatus.innerHTML = `<span class="admin-badge">ADMIN</span> ${currentUser.email || 'Admin'}`;
-                adminLink.style.display = 'inline';
-                document.getElementById('adminDashboard').style.display = 'block';
-                
-                document.getElementById('login_prompt').style.display = 'none';
-                document.getElementById('voting_controls').style.display = 'none';
-                document.getElementById('already_voted').style.display = 'none';
-                
-                loadAdminStats();
-            } else {
-                userStatus.innerHTML = `👤 ${currentUser.phoneNumber || 'User'}`;
-                adminLink.style.display = 'none';
-                document.getElementById('adminDashboard').style.display = 'none';
-                
-                checkUserVote();
-            }
-        } else {
-            loginBtn.style.display = 'inline-block';
-            logoutBtn.style.display = 'none';
-            userStatus.style.display = 'none';
-            adminLink.style.display = 'none';
-            document.getElementById('adminDashboard').style.display = 'none';
-            
-            document.getElementById('login_prompt').style.display = 'block';
-            document.getElementById('voting_controls').style.display = 'none';
-            document.getElementById('already_voted').style.display = 'none';
-        }
-    }
-
-    // CHECK USER VOTE
-    async function checkUserVote() {
-        if (!currentUser || isAdmin) return;
-        
-        try {
-            const snapshot = await get(ref(db, 'citizen_proposals/' + currentUser.uid));
-            if (snapshot.exists()) {
-                document.getElementById('already_voted').style.display = 'block';
-                document.getElementById('voting_controls').style.display = 'none';
-                document.getElementById('login_prompt').style.display = 'none';
-            } else {
-                document.getElementById('user_welcome').innerText = "Verified: " + (currentUser.phoneNumber || 'User');
-                document.getElementById('login_prompt').style.display = 'none';
-                document.getElementById('voting_controls').style.display = 'block';
-                document.getElementById('already_voted').style.display = 'none';
-            }
-        } catch (error) {
-            console.log("Error checking vote:", error);
-        }
-    }
-
-    // SEND FEEDBACK (VOTE)
-    window.sendFeedback = async function() {
-        if (!currentUser || isAdmin) {
-            alert('Please login as a user to vote');
-            return;
-        }
-        
-        const gender = document.getElementById('genderSelect').value;
-        const ageGroup = document.getElementById('ageGroupSelect').value;
-        const ward = document.getElementById('wardSelect').value;
-        
-        if (!gender || !ageGroup || !ward) {
-            alert('Please select gender, age group, and ward');
-            return;
-        }
-        
-        const voteData = {
-            phone: currentUser.phoneNumber || 'Not provided',
-            uid: currentUser.uid,
-            gender: gender,
-            ageGroup: ageGroup,
-            ward: ward,
-            edu: document.getElementById('edu_p').value,
-            infra: document.getElementById('inf_p').value,
-            health: document.getElementById('health_p').value,
-            san: document.getElementById('san_p').value,
-            reason: document.getElementById('voteReason').value || 'No reason provided',
-            followUpdates: document.getElementById('followUpdates').checked,
-            timestamp: Date.now(),
-            date: new Date().toISOString().split('T')[0]
-        };
-        
-        try {
-            await set(ref(db, 'citizen_proposals/' + currentUser.uid), voteData);
-            alert('✅ Vote submitted successfully!');
-            checkUserVote();
-            loadPublicStats();
-            if (isAdmin) loadAdminStats();
-        } catch (error) {
-            console.error("Error saving vote:", error);
-            alert('Error saving vote. Please try again.');
-        }
-    };
-
-    // LOAD PUBLIC STATS
-    async function loadPublicStats() {
-        try {
-            const snapshot = await get(ref(db, 'citizen_proposals'));
-            if (!snapshot.exists()) return;
-            
-            const votes = Object.values(snapshot.val());
-            const today = new Date().toISOString().split('T')[0];
-            
-            const ageCounts = { '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 };
-            const genderCounts = { 'male': 0, 'female': 0, 'other': 0 };
-            let totalEdu = 0, totalInfra = 0, totalHealth = 0, totalSan = 0;
-            
-            votes.forEach(v => {
-                if (v.ageGroup && ageCounts[v.ageGroup] !== undefined) {
-                    ageCounts[v.ageGroup]++;
-                }
-                if (v.gender && genderCounts[v.gender] !== undefined) {
-                    genderCounts[v.gender]++;
-                }
-                if (v.edu) totalEdu += parseInt(v.edu);
-                if (v.infra) totalInfra += parseInt(v.infra);
-                if (v.health) totalHealth += parseInt(v.health);
-                if (v.san) totalSan += parseInt(v.san);
-                
-                // Check if vote is from today
-                if (v.date === today) {
-                    // This will be counted in the next step
-                }
-            });
-            
-            const todayVotes = votes.filter(v => v.date === today).length;
-            
-            document.getElementById('publicTotalVotes').textContent = votes.length;
-            document.getElementById('publicTodayVotes').textContent = todayVotes;
-            document.getElementById('publicAvgEducation').textContent = votes.length > 0 ? Math.round(totalEdu / votes.length) + '%' : '0%';
-            document.getElementById('publicAvgInfra').textContent = votes.length > 0 ? Math.round(totalInfra / votes.length) + '%' : '0%';
-            
-            // Load charts
-            google.charts.setOnLoadCallback(() => {
-                const ageData = google.visualization.arrayToDataTable([
-                    ['Age', 'Votes', {role: 'style'}],
-                    ['18-25', ageCounts['18-25'], '#2563eb'],
-                    ['26-35', ageCounts['26-35'], '#10b981'],
-                    ['36-50', ageCounts['36-50'], '#f59e0b'],
-                    ['50+', ageCounts['50+'], '#ef4444']
-                ]);
-                
-                const genderData = google.visualization.arrayToDataTable([
-                    ['Gender', 'Votes', {role: 'style'}],
-                    ['Male', genderCounts['male'], '#2563eb'],
-                    ['Female', genderCounts['female'], '#10b981'],
-                    ['Other', genderCounts['other'], '#f59e0b']
-                ]);
-                
-                new google.visualization.ColumnChart(document.getElementById('publicAgeChart')).draw(ageData, {
-                    legend: 'none',
-                    backgroundColor: 'transparent',
-                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
-                });
-                
-                new google.visualization.ColumnChart(document.getElementById('publicGenderChart')).draw(genderData, {
-                    legend: 'none',
-                    backgroundColor: 'transparent',
-                    colors: ['#2563eb', '#10b981', '#f59e0b']
-                });
-            });
-            
-        } catch (error) {
-            console.log("Error loading public stats:", error);
-        }
-    }
-
-    // LOAD ADMIN STATS
-    async function loadAdminStats() {
-        if (!isAdmin) return;
-        
-        try {
-            const snapshot = await get(ref(db, 'citizen_proposals'));
-            const votes = Object.values(snapshot.val() || {});
-            const today = new Date().toISOString().split('T')[0];
-            
-            const ageCounts = { '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 };
-            const genderCounts = { 'male': 0, 'female': 0, 'other': 0 };
-            const wardCounts = { 'Ward 1': 0, 'Ward 2': 0, 'Ward 3': 0, 'Ward 4': 0, 'Ward 5': 0 };
-            let totalEdu = 0, totalInfra = 0, totalHealth = 0, totalSan = 0;
-            
-            votes.forEach(v => {
-                if (v.ageGroup && ageCounts[v.ageGroup] !== undefined) {
-                    ageCounts[v.ageGroup]++;
-                }
-                if (v.gender && genderCounts[v.gender] !== undefined) {
-                    genderCounts[v.gender]++;
-                }
-                if (v.ward && wardCounts[v.ward] !== undefined) {
-                    wardCounts[v.ward]++;
-                }
-                if (v.edu) totalEdu += parseInt(v.edu);
-                if (v.infra) totalInfra += parseInt(v.infra);
-                if (v.health) totalHealth += parseInt(v.health);
-                if (v.san) totalSan += parseInt(v.san);
-            });
-            
-            const todayVotes = votes.filter(v => v.date === today).length;
-            
-            document.getElementById('totalVotes').textContent = votes.length;
-            document.getElementById('todayVotes').textContent = todayVotes;
-            document.getElementById('maleVotes').textContent = genderCounts['male'];
-            document.getElementById('femaleVotes').textContent = genderCounts['female'];
-            document.getElementById('ward1Votes').textContent = wardCounts['Ward 1'];
-            document.getElementById('ward2Votes').textContent = wardCounts['Ward 2'];
-            
-            // Update average priorities
-            if (votes.length > 0) {
-                document.getElementById('avgEdu').textContent = Math.round(totalEdu / votes.length) + '%';
-                document.getElementById('avgInfra').textContent = Math.round(totalInfra / votes.length) + '%';
-                document.getElementById('avgHealth').textContent = Math.round(totalHealth / votes.length) + '%';
-                document.getElementById('avgSan').textContent = Math.round(totalSan / votes.length) + '%';
-            }
-            
-            // Update recent votes list
-            const recentVotesList = document.getElementById('recentVotesList');
-            recentVotesList.innerHTML = '';
-            
-            const recentVotes = votes.slice(-10).reverse();
-            recentVotes.forEach(vote => {
-                const div = document.createElement('div');
-                div.style.padding = '8px';
-                div.style.borderBottom = '1px solid #e2e8f0';
-                div.innerHTML = `
-                    <strong>${vote.phone || 'Unknown'}</strong><br>
-                    <small>${vote.ward || 'No ward'} | ${vote.ageGroup || 'No age'} | ${vote.gender || 'No gender'}</small><br>
-                    <small>Edu: ${vote.edu}%, Infra: ${vote.infra}%, Health: ${vote.health}%, San: ${vote.san}%</small>
-                `;
-                recentVotesList.appendChild(div);
-            });
-            
-            // Load admin charts
-            google.charts.setOnLoadCallback(() => {
-                const ageData = google.visualization.arrayToDataTable([
-                    ['Age', 'Votes'],
-                    ['18-25', ageCounts['18-25']],
-                    ['26-35', ageCounts['26-35']],
-                    ['36-50', ageCounts['36-50']],
-                    ['50+', ageCounts['50+']]
-                ]);
-                
-                const genderData = google.visualization.arrayToDataTable([
-                    ['Gender', 'Votes'],
-                    ['Male', genderCounts['male']],
-                    ['Female', genderCounts['female']],
-                    ['Other', genderCounts['other']]
-                ]);
-                
-                new google.visualization.PieChart(document.getElementById('ageChart')).draw(ageData, {
-                    title: 'Age Distribution',
-                    backgroundColor: 'transparent',
-                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
-                });
-                
-                new google.visualization.PieChart(document.getElementById('genderChart')).draw(genderData, {
-                    title: 'Gender Distribution',
-                    backgroundColor: 'transparent',
-                    colors: ['#2563eb', '#10b981', '#f59e0b']
-                });
-            });
-            
-        } catch (error) {
-            console.log("Error loading admin stats:", error);
-        }
-    }
-
-    // INITIALIZE MAP
-    function initMap() {
-        map = L.map('project-map').setView([12.9716, 77.5946], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-        
-        // Add project markers
-        const projects = [
-            { lat: 12.9716, lng: 77.5946, title: 'Smart School Project', desc: 'New digital literacy wing', ward: 'Ward 5', status: 'completed', amount: '₹2.5 Cr' },
-            { lat: 12.9816, lng: 77.5846, title: 'Metro Expansion', desc: 'New metro line construction', ward: 'Ward 3', status: 'progress', amount: '₹15 Cr' },
-            { lat: 12.9616, lng: 77.6046, title: 'Waste Management Plant', desc: 'New recycling facility', ward: 'Ward 2', status: 'planned', amount: '₹8 Cr' },
-            { lat: 12.9766, lng: 77.5996, title: 'Public Park Development', desc: 'Green space with solar lighting', ward: 'Ward 4', status: 'progress', amount: '₹3.2 Cr' },
-            { lat: 12.9666, lng: 77.5896, title: 'Water Pipeline Upgrade', desc: '5km pipeline replacement', ward: 'Ward 1', status: 'completed', amount: '₹4.5 Cr' }
-        ];
-        
-        projects.forEach(project => {
-            let markerColor = 'blue';
-            if (project.status === 'completed') markerColor = 'green';
-            if (project.status === 'progress') markerColor = 'orange';
-            if (project.status === 'planned') markerColor = 'gray';
-            
-            const marker = L.marker([project.lat, project.lng], {
-                icon: L.divIcon({
-                    className: 'custom-icon',
-                    html: `<div style="background:${markerColor}; width:20px; height:20px; border-radius:50%; border:2px solid white;"></div>`
-                })
-            }).addTo(map);
-            
-            marker.bindPopup(`
-                <b>${project.title}</b><br>
-                ${project.desc}<br>
-                <strong>Ward:</strong> ${project.ward}<br>
-                <strong>Status:</strong> ${project.status}<br>
-                <strong>Budget:</strong> ${project.amount}<br>
-                <button onclick="reportIssue('${project.title}')" style="margin-top:5px; padding:5px 10px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer;">
-                    Report Issue
-                </button>
-            `);
-            
-            mapMarkers.push({ marker, project });
-        });
-    }
-
-    window.filterMapByWard = function() {
-        const ward = document.getElementById('wardFilter').value;
-        mapMarkers.forEach(item => {
-            if (ward === 'all' || item.project.ward.includes(ward)) {
-                item.marker.addTo(map);
-            } else {
-                map.removeLayer(item.marker);
-            }
-        });
-    };
-
-    window.filterMapByStatus = function() {
-        const status = document.getElementById('statusFilter').value;
-        mapMarkers.forEach(item => {
-            if (status === 'all' || item.project.status === status) {
-                item.marker.addTo(map);
-            } else {
-                map.removeLayer(item.marker);
-            }
-        });
-    };
-
-    window.reportIssue = function(projectTitle) {
-        if (!currentUser) {
-            alert('Please login to report an issue');
-            return;
-        }
-        const issue = prompt(`Describe the issue with ${projectTitle}:`);
-        if (issue) {
-            alert('Thank you! Your report has been submitted.');
-            // In real implementation, save to Firebase
-        }
-    };
-
-    // LOAD CHARTS
-    google.charts.load('current', {'packages':['corechart']});
     
-    onValue(ref(db, 'budgets/2024'), snapshot => {
-        const val = snapshot.val();
-        if (val) {
-            google.charts.setOnLoadCallback(() => {
-                // Main pie chart
-                const data = google.visualization.arrayToDataTable([
-                    ['Category', 'Amount (₹ Cr)', {role: 'style'}],
-                    ['Education', val.education || 45, '#2563eb'],
-                    ['Healthcare', val.health || 32, '#10b981'],
-                    ['Infrastructure', val.roads || 58, '#f59e0b'],
-                    ['Sanitation', val.water || 25, '#ef4444']
-                ]);
-                
-                new google.visualization.PieChart(document.getElementById('main_chart')).draw(data, {
-                    pieHole: 0.6,
-                    chartArea: {width: '90%', height: '80%'},
-                    legend: {position: 'bottom'},
-                    backgroundColor: 'transparent',
-                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
-                });
-                
-                // Year-over-year comparison
-                const yearData = google.visualization.arrayToDataTable([
-                    ['Category', '2023', '2024'],
-                    ['Education', 42, 45],
-                    ['Healthcare', 30, 32],
-                    ['Infrastructure', 52, 58],
-                    ['Sanitation', 22, 25]
-                ]);
-                
-                new google.visualization.ColumnChart(document.getElementById('year_comparison_chart')).draw(yearData, {
-                    title: 'Year-over-Year Comparison (₹ Cr)',
-                    legend: {position: 'top'},
-                    backgroundColor: 'transparent',
-                    colors: ['#94a3b8', '#2563eb']
-                });
-                
-                // Budget vs Actual
-                const budgetData = google.visualization.arrayToDataTable([
-                    ['Category', 'Budgeted', 'Actual'],
-                    ['Education', 48, 45],
-                    ['Healthcare', 35, 32],
-                    ['Infrastructure', 60, 58],
-                    ['Sanitation', 27, 25]
-                ]);
-                
-                new google.visualization.ColumnChart(document.getElementById('budget_actual_chart')).draw(budgetData, {
-                    title: 'Budget vs Actual Spending (₹ Cr)',
-                    legend: {position: 'top'},
-                    backgroundColor: 'transparent',
-                    colors: ['#f59e0b', '#10b981']
-                });
-            });
-        }
-    });
-
-    // LOAD LEDGER DATA
-    async function loadLedgerData() {
-        try {
-            const snapshot = await get(ref(db, 'ledger'));
-            const tbody = document.getElementById('ledgerBody');
-            tbody.innerHTML = '';
-            
-            if (snapshot.exists()) {
-                const ledger = snapshot.val();
-                Object.values(ledger).forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${item.date || '2026-01-14'}</td>
-                        <td>${item.category || 'Education'}</td>
-                        <td>${item.description || 'Smart School Project'}</td>
-                        <td>${item.amount ? '₹' + parseInt(item.amount).toLocaleString('en-IN') : '₹2,50,00,000'}</td>
-                        <td>${item.ward || 'Ward 5'}</td>
-                        <td>${item.vendor || 'ABC Constructions'}</td>
-                        <td><span style="padding:4px 8px; border-radius:4px; background:#dcfce7; color:#166534; font-size:0.8rem;">Completed</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } else {
-                // Demo data
-                const demoData = [
-                    ['2026-01-14', 'Education', 'Smart School Project', '₹2,50,00,000', 'Ward 5', 'ABC Constructions', 'Completed'],
-                    ['2026-01-13', 'Healthcare', 'Primary Health Center', '₹1,80,00,000', 'Ward 7', 'MediCare Builders', 'In Progress'],
-                    ['2026-01-12', 'Infrastructure', 'Road Widening', '₹3,20,00,000', 'Ward 3', 'Roads India Ltd', 'Completed'],
-                    ['2026-01-11', 'Sanitation', 'Sewage Treatment Plant', '₹4,50,00,000', 'Ward 9', 'CleanWater Tech', 'Planned']
-                ];
-                
-                demoData.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${row[0]}</td>
-                        <td>${row[1]}</td>
-                        <td>${row[2]}</td>
-                        <td>${row[3]}</td>
-                        <td>${row[4]}</td>
-                        <td>${row[5]}</td>
-                        <td><span style="padding:4px 8px; border-radius:4px; background:#dcfce7; color:#166534; font-size:0.8rem;">${row[6]}</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-        } catch (error) {
-            console.log("Error loading ledger:", error);
-        }
-    }
-
-    // UTILITY FUNCTIONS
-    window.updateSlider = function(id, value) {
-        document.getElementById(id).textContent = value + '%';
-    };
-
-    window.toggleAccordion = function(header) {
-        const content = header.nextElementSibling;
-        content.classList.toggle('active');
-        header.lastElementChild.textContent = content.classList.contains('active') ? '−' : '+';
-    };
-
-    window.downloadCSV = function() {
-        const csv = 'Date,Category,Description,Amount,Ward,Vendor,Status\n' +
-                   '2026-01-14,Education,Smart School Project,25000000,Ward 5,ABC Constructions,Completed\n' +
-                   '2026-01-13,Healthcare,Primary Health Center,18000000,Ward 7,MediCare Builders,In Progress\n' +
-                   '2026-01-12,Infrastructure,Road Widening,32000000,Ward 3,Roads India Ltd,Completed\n' +
-                   '2026-01-11,Sanitation,Sewage Treatment Plant,45000000,Ward 9,CleanWater Tech,Planned';
-        
-        const blob = new Blob([csv], {type: 'text/csv'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'civicspend_ledger.csv';
-        a.click();
-    };
-
-    window.downloadJSON = function() {
-        const data = {
-            ledger: [
-                { date: '2026-01-14', category: 'Education', description: 'Smart School Project', amount: 25000000, ward: 'Ward 5', vendor: 'ABC Constructions', status: 'Completed' },
-                { date: '2026-01-13', category: 'Healthcare', description: 'Primary Health Center', amount: 18000000, ward: 'Ward 7', vendor: 'MediCare Builders', status: 'In Progress' },
-                { date: '2026-01-12', category: 'Infrastructure', description: 'Road Widening', amount: 32000000, ward: 'Ward 3', vendor: 'Roads India Ltd', status: 'Completed' },
-                { date: '2026-01-11', category: 'Sanitation', description: 'Sewage Treatment Plant', amount: 45000000, ward: 'Ward 9', vendor: 'CleanWater Tech', status: 'Planned' }
-            ]
-        };
-        
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'civicspend_data.json';
-        a.click();
-    };
-
-    window.downloadPDF = function() {
-        alert('PDF report would be generated and downloaded. This is a demo feature.');
-    };
-
-    window.exportVoteData = function() {
-        alert('Vote data export would be generated. This is a demo feature.');
-    };
-
-    window.changeLanguage = function() {
-        currentLanguage = document.getElementById('languageSelect').value;
-        applyLanguage(currentLanguage);
-    };
-
     // CHATBOT FUNCTIONS
     window.toggleChatbot = function() {
         const panel = document.getElementById('chatbotPanel');
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
     };
-
+    
     window.sendChat = function() {
         const input = document.getElementById('chatInput');
         const message = input.value.trim();
@@ -1469,7 +1377,7 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }, 500);
     };
-
+    
     function generateBotResponse(message) {
         const lowerMessage = message.toLowerCase();
         
@@ -1504,7 +1412,7 @@
             return "I understand you're asking about '" + message + "'. For specific help with budget, voting, projects, or login issues, please ask more specifically or check the FAQ section.";
         }
     }
-
+    
     // INITIALIZE ON LOAD
     window.addEventListener('load', function() {
         // Initialize map
@@ -1534,17 +1442,8 @@
                 row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
         });
-        
-        // Initialize Firebase auth state listener
-        onAuthStateChanged(auth, (user) => {
-            if (user && !currentUser) {
-                currentUser = user;
-                isAdmin = localStorage.getItem('isAdmin') === 'true';
-                updateUI();
-            }
-        });
     });
-
+    
     function updateDataFreshness() {
         const hours = Math.floor(Math.random() * 6);
         document.getElementById('dataFreshness').textContent = `Data synced ${hours}h ago`;
