@@ -157,8 +157,8 @@
 <!-- ENTRY MODAL - FIRST LOAD BLOCKER -->
 <div id="entryModal" class="login-modal">
     <div class="modal-content">
-        <h3>Choose Login Type</h3>
-        <p style="color:var(--slate-600)">Select how you want to continue.</p>
+        <h3>Welcome to CivicSpend Pro</h3>
+        <p style="color:var(--slate-600)">Choose how you want to access the platform:</p>
         <div style="display:flex; gap:12px; margin-top:18px; flex-wrap:wrap;">
             <button class="btn btn-primary" style="flex:1" onclick="chooseEntry('user')">👤 Continue as User</button>
             <button class="btn btn-secondary" style="flex:1" onclick="chooseEntry('admin')">🛡️ Continue as Admin</button>
@@ -167,42 +167,49 @@
             <button class="btn" style="width:100%; border:1px solid #e2e8f0; background:white;" onclick="enterAsGuest()">
                 👁️ Browse as Guest (no vote)
             </button>
-            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="openLoginModal('user'); closeEntryModal();">
+            <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="openLoginModal(); closeEntryModal();">
                 📱 Login to Vote (OTP)
             </button>
         </div>
         <div id="entryAdminActions" style="margin-top:18px; display:none;">
-            <button class="btn btn-primary" style="width:100%;" onclick="openLoginModal('admin'); closeEntryModal();">
+            <button class="btn btn-primary" style="width:100%;" onclick="openAdminLogin(); closeEntryModal();">
                 🔐 Admin Login (Any Email/Password)
             </button>
         </div>
     </div>
 </div>
 
-<!-- LOGIN MODAL -->
+<!-- USER LOGIN MODAL -->
 <div id="loginModal" class="login-modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeLoginModal()">&times;</span>
-        <h3 id="modalTitle">User Login</h3>
+        <h3>User Login</h3>
         <div id="userLoginForm">
-            <input type="tel" id="phoneNumber" placeholder="Enter any phone number (e.g., 9876543210)" style="margin-bottom: 15px;">
-            <div id="recaptcha-container"></div>
+            <input type="tel" id="phoneNumber" placeholder="Enter phone number (e.g., 9876543210)" style="margin-bottom: 15px;">
             <button class="btn btn-primary" onclick="sendOTP()" style="width:100%">Send OTP</button>
             <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
-                <a href="#" onclick="switchToAdminLogin()" style="color: var(--brand);">Admin Login →</a>
-            </p>
-        </div>
-        <div id="adminLoginForm" style="display: none;">
-            <input type="email" id="adminEmail" placeholder="Enter any email" style="margin-bottom: 15px;">
-            <input type="password" id="adminPassword" placeholder="Enter any password" style="margin-bottom: 15px;">
-            <button class="btn btn-primary" onclick="adminLogin()" style="width:100%">Admin Login</button>
-            <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
-                <a href="#" onclick="switchToUserLogin()" style="color: var(--brand);">User Login →</a>
+                <span style="color: var(--slate-600);">Demo: OTP will be 123456</span>
             </p>
         </div>
         <div id="otpContainer" style="display: none;">
-            <input type="text" id="verificationCode" placeholder="Enter 123456 (demo OTP)" style="margin-bottom: 15px;">
+            <input type="text" id="verificationCode" placeholder="Enter OTP (123456 for demo)" style="margin-bottom: 15px;">
             <button class="btn btn-primary" onclick="verifyOTP()" style="width:100%">Verify & Login</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div id="adminLoginModal" class="login-modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeAdminLoginModal()">&times;</span>
+        <h3>Admin Login</h3>
+        <div id="adminLoginForm">
+            <input type="email" id="adminEmail" placeholder="Enter any email" style="margin-bottom: 15px;">
+            <input type="password" id="adminPassword" placeholder="Enter any password" style="margin-bottom: 15px;">
+            <button class="btn btn-primary" onclick="adminLogin()" style="width:100%">Login as Admin</button>
+            <p style="text-align: center; margin-top: 15px; font-size: 0.9rem;">
+                <span style="color: var(--slate-600);">Accepts any email/password</span>
+            </p>
         </div>
     </div>
 </div>
@@ -217,11 +224,11 @@
         <a href="#admin" id="adminLink" style="display: none;">Admin</a>
         <select id="languageSelect" onchange="changeLanguage()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white;">
             <option value="en">English</option>
-            <option value="ta">தமிழ்</option>
-            <option value="hi">हिंदी</option>
+            <option value="ta">தமிழ் (Tamil)</option>
+            <option value="hi">हिंदी (Hindi)</option>
         </select>
         <span id="userStatus" class="user-status" style="display: none;"></span>
-        <button class="btn btn-secondary" id="loginBtn" onclick="openLoginModal('user')">Login</button>
+        <button class="btn btn-secondary" id="loginBtn" onclick="openLoginModal()">Login</button>
         <button class="btn" style="background: var(--danger); color: white;" id="logoutBtn" onclick="logout()" style="display: none;">Logout</button>
     </div>
 </nav>
@@ -247,9 +254,23 @@
                 This chart represents the <strong>validated treasury data</strong> for the fiscal year 2024-25. Data is pulled directly from the municipal accounting API and updated in real-time as warrants are issued.
             </p>
             <div id="main_chart" style="height: 550px; width: 100%;"></div>
+            
+            <!-- YEAR-OVER-YEAR COMPARISON -->
+            <div style="margin-top: 40px;">
+                <h4 id="yearCompareTitle">Year-over-Year Comparison</h4>
+                <div id="year_comparison_chart" style="height: 300px; width: 100%; margin-top: 20px;"></div>
+            </div>
+            
+            <!-- BUDGET VS ACTUAL -->
+            <div style="margin-top: 40px;">
+                <h4 id="budgetActualTitle">Budget vs Actual Spending</h4>
+                <div id="budget_actual_chart" style="height: 300px; width: 100%; margin-top: 20px;"></div>
+            </div>
+
             <div class="download-btns">
                 <button onclick="downloadCSV()">📥 Download CSV</button>
                 <button onclick="downloadJSON()">📥 Download JSON</button>
+                <button onclick="downloadPDF()">📥 Download PDF Report</button>
             </div>
 
             <!-- SEARCHABLE LEDGER -->
@@ -266,14 +287,10 @@
                         <th>Amount (₹)</th>
                         <th>Ward</th>
                         <th>Vendor</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
-                <tbody id="ledgerBody">
-                    <tr><td>2026-01-14</td><td>Education</td><td>Smart School Project</td><td>₹2,50,00,000</td><td>Ward 5</td><td>ABC Constructions</td></tr>
-                    <tr><td>2026-01-13</td><td>Healthcare</td><td>Primary Health Center</td><td>₹1,80,00,000</td><td>Ward 7</td><td>MediCare Builders</td></tr>
-                    <tr><td>2026-01-12</td><td>Infrastructure</td><td>Road Widening</td><td>₹3,20,00,000</td><td>Ward 3</td><td>Roads India Ltd</td></tr>
-                    <tr><td>2026-01-11</td><td>Sanitation</td><td>Sewage Treatment Plant</td><td>₹4,50,00,000</td><td>Ward 9</td><td>CleanWater Tech</td></tr>
-                </tbody>
+                <tbody id="ledgerBody"></tbody>
             </table>
         </div>
 
@@ -290,6 +307,14 @@
                 <div class="stat-card">
                     <div class="stat-number" id="publicTodayVotes">0</div>
                     <div id="publicTodayVotesLabel">Votes today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="publicAvgEducation">25%</div>
+                    <div id="publicAvgEducationLabel">Avg Education</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="publicAvgInfra">25%</div>
+                    <div id="publicAvgInfraLabel">Avg Infrastructure</div>
                 </div>
             </div>
             <div class="vote-demographics">
@@ -313,7 +338,7 @@
             
             <div id="login_prompt" style="text-align: center;">
                 <p id="loginPromptText" style="font-size: 0.9rem; color: var(--slate-600);">Verify your identity via SMS to vote.</p>
-                <button class="btn btn-primary" onclick="openLoginModal('user')" style="width:100%; margin-top: 20px;">Login to Vote</button>
+                <button class="btn btn-primary" onclick="openLoginModal()" style="width:100%; margin-top: 20px;">Login to Vote</button>
             </div>
 
             <div id="voting_controls" style="display: none;">
@@ -334,6 +359,14 @@
                         <option value="36-50">36-50</option>
                         <option value="50+">50+</option>
                     </select>
+                    <select id="wardSelect">
+                        <option value="">Select Your Ward</option>
+                        <option value="Ward 1">Ward 1</option>
+                        <option value="Ward 2">Ward 2</option>
+                        <option value="Ward 3">Ward 3</option>
+                        <option value="Ward 4">Ward 4</option>
+                        <option value="Ward 5">Ward 5</option>
+                    </select>
                 </div>
 
                 <div class="input-group"><label id="eduLabel">Education <span id="val1">25%</span></label><input type="range" id="edu_p" value="25" min="0" max="100" oninput="updateSlider('val1', this.value)"></div>
@@ -341,9 +374,14 @@
                 <div class="input-group"><label id="healthLabel">Healthcare <span id="val3">25%</span></label><input type="range" id="health_p" value="25" min="0" max="100" oninput="updateSlider('val3', this.value)"></div>
                 <div class="input-group"><label id="sanLabel">Sanitation <span id="val4">25%</span></label><input type="range" id="san_p" value="25" min="0" max="100" oninput="updateSlider('val4', this.value)"></div>
 
-                <textarea id="voteReason" placeholder="Why do you prioritize these areas? (Optional)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px; resize:vertical; min-height:80px;"></textarea>
+                <textarea id="voteReason" placeholder="Why do you prioritize these areas? (Optional but recommended)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px; resize:vertical; min-height:80px;"></textarea>
                 
-                <button class="btn btn-primary" style="width:100%;" onclick="sendFeedback()">Submit Priority Vote</button>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="checkbox" id="followUpdates" checked>
+                    <label for="followUpdates" style="font-size: 0.85rem; color: var(--slate-600);">Send me updates on budget decisions</label>
+                </div>
+                
+                <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="sendFeedback()">Submit Priority Vote</button>
             </div>
 
             <div id="already_voted" style="display: none; text-align: center; padding: 20px;">
@@ -362,6 +400,8 @@
                         <div class="stat-card"><div class="stat-number" id="todayVotes">0</div><div>Today's Votes</div></div>
                         <div class="stat-card"><div class="stat-number" id="maleVotes">0</div><div>Male Voters</div></div>
                         <div class="stat-card"><div class="stat-number" id="femaleVotes">0</div><div>Female Voters</div></div>
+                        <div class="stat-card"><div class="stat-number" id="ward1Votes">0</div><div>Ward 1 Votes</div></div>
+                        <div class="stat-card"><div class="stat-number" id="ward2Votes">0</div><div>Ward 2 Votes</div></div>
                     </div>
                     <div class="vote-demographics">
                         <div><h5>Age Group Distribution</h5><div id="ageChart" class="demographic-chart"></div></div>
@@ -369,7 +409,19 @@
                     </div>
                     <div style="margin-top: 20px;">
                         <h5>Recent Votes</h5>
-                        <div id="recentVotesList" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem;"></div>
+                        <div id="recentVotesList" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; background: #f8fafc; padding: 10px; border-radius: 8px;"></div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <h5>Average Priorities</h5>
+                        <div id="avgPriorities" style="background: #f8fafc; padding: 10px; border-radius: 8px; font-size: 0.85rem;">
+                            <div>Education: <span id="avgEdu">25%</span></div>
+                            <div>Infrastructure: <span id="avgInfra">25%</span></div>
+                            <div>Healthcare: <span id="avgHealth">25%</span></div>
+                            <div>Sanitation: <span id="avgSan">25%</span></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-primary" style="width:100%;" onclick="exportVoteData()">📊 Export Vote Data</button>
                     </div>
                 </div>
             </div>
@@ -386,6 +438,28 @@
     </div>
     <div class="card" style="max-width: 1200px; margin: 0 auto 40px;">
         <div id="project-map"></div>
+        <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+            <div>
+                <h5>Filter by Ward:</h5>
+                <select id="wardFilter" onchange="filterMapByWard()">
+                    <option value="all">All Wards</option>
+                    <option value="1">Ward 1</option>
+                    <option value="2">Ward 2</option>
+                    <option value="3">Ward 3</option>
+                    <option value="4">Ward 4</option>
+                    <option value="5">Ward 5</option>
+                </select>
+            </div>
+            <div>
+                <h5>Filter by Status:</h5>
+                <select id="statusFilter" onchange="filterMapByStatus()">
+                    <option value="all">All Status</option>
+                    <option value="completed">Completed</option>
+                    <option value="progress">In Progress</option>
+                    <option value="planned">Planned</option>
+                </select>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -422,20 +496,28 @@
     </div>
     <div class="accordion">
         <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)">Where does this data come from? <span>+</span></div>
-            <div class="accordion-content">Our data is fetched from the Open Data portal of the Municipal Corporation. It is updated once the quarterly audits are finalized.</div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq1">Where does this data come from?</span> <span>+</span></div>
+            <div class="accordion-content"><span id="faq1a">Our data is fetched from the Open Data portal of the Municipal Corporation. It is updated once the quarterly audits are finalized.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)">How secure is my vote? <span>+</span></div>
-            <div class="accordion-content">Votes are cryptographically signed and stored against your verified phone number. No personal data is shown publicly.</div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq2">How secure is my vote?</span> <span>+</span></div>
+            <div class="accordion-content"><span id="faq2a">Votes are cryptographically signed and stored against your verified phone number. No personal data is shown publicly.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)">Can I change my vote? <span>+</span></div>
-            <div class="accordion-content">One vote per verified number per budget cycle. Contact support@civicspend.gov for special circumstances.</div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq3">Can I change my vote?</span> <span>+</span></div>
+            <div class="accordion-content"><span id="faq3a">One vote per verified number per budget cycle. Contact support@civicspend.gov for special circumstances.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)">Is this official government site? <span>+</span></div>
-            <div class="accordion-content">CivicSpend Pro is a civic-tech initiative approved by the City Finance Department for transparency.</div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq4">Is this official government site?</span> <span>+</span></div>
+            <div class="accordion-content"><span id="faq4a">CivicSpend Pro is a civic-tech initiative approved by the City Finance Department for transparency.</span></div>
+        </div>
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq5">How often is data updated?</span> <span>+</span></div>
+            <div class="accordion-content"><span id="faq5a">Financial data is updated every 24 hours. Project status updates are real-time as reported by field officers.</span></div>
+        </div>
+        <div class="accordion-item">
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq6">Who can see my vote?</span> <span>+</span></div>
+            <div class="accordion-content"><span id="faq6a">Only aggregated anonymous statistics are shown publicly. Individual votes are visible only to authorized administrators for analysis.</span></div>
         </div>
     </div>
 </section>
@@ -443,7 +525,7 @@
 <!-- AI CHATBOT -->
 <div id="chatbot">
     <button class="btn btn-primary" onclick="toggleChatbot()" style="border-radius:999px; padding:12px 18px; box-shadow:0 4px 12px rgba(37,99,235,0.3);">
-        💬 Help
+        💬 Civic Assistant
     </button>
     <div id="chatbotPanel">
         <div style="padding:14px 16px; background:var(--brand); color:white; display:flex; justify-content:space-between; align-items:center;">
@@ -454,7 +536,7 @@
             <div><strong>Bot:</strong> Hello! I'm your CivicSpend assistant. Ask me about budget, voting, projects, or how the platform works.</div>
         </div>
         <div style="padding:12px; display:flex; gap:8px; border-top:1px solid #e2e8f0;">
-            <input id="chatInput" type="text" placeholder="Ask about budget, voting, projects..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #e2e8f0;">
+            <input id="chatInput" type="text" placeholder="Ask about budget, voting, projects..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #e2e8f0;" onkeypress="if(event.key === 'Enter') sendChat()">
             <button class="btn btn-primary" style="padding:10px 14px; border-radius:10px;" onclick="sendChat()">Send</button>
         </div>
     </div>
@@ -483,22 +565,168 @@
                 <li>📞 +91 44 2345 6789</li>
             </ul>
         </div>
+        <div>
+            <h4>Quick Links</h4>
+            <ul>
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="#vote">Vote Now</a></li>
+                <li><a href="#projects">Project Map</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+            </ul>
+        </div>
     </div>
     <div class="footer-bottom">
         © 2026 CivicSpend Pro. All rights reserved. Built with Firebase & Google Charts.
     </div>
 </footer>
 
-<script>
-    // FIXED: SIMPLE JAVASCRIPT FUNCTIONS (No Firebase dependency for demo)
-    
-    // Global variables
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, set, get, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+        apiKey: "AIzaSyAu4vi1x-tRVmHyKyp1JGfVfyBva7A91Jc",
+        authDomain: "local-budget-transparency.firebaseapp.com",
+        databaseURL: "https://local-budget-transparency-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "local-budget-transparency",
+        storageBucket: "local-budget-transparency.appspot.com",
+        messagingSenderId: "781973364320",
+        appId: "1:781973364320:web:566b9e7f6a6a51800ead05"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
     let currentUser = null;
     let isAdmin = false;
+    let confirmationResult = null;
+    let map = null;
     let currentLanguage = 'en';
-    let userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
-    let adminStats = JSON.parse(localStorage.getItem('adminStats')) || { totalVotes: 0, todayVotes: 0, maleVotes: 0, femaleVotes: 0 };
-    
+    let mapMarkers = [];
+
+    // TRANSLATION SYSTEM
+    const I18N = {
+        en: {
+            heroTitle: "Government Spending, <br><span style='color:var(--brand)'>Decoded for You.</span>",
+            heroSubtitle: "CivicSpend Pro bridges the gap between complex municipal ledgers and citizen understanding. Explore live data, track every rupee, and influence the city's future.",
+            chartTitle: "Current Resource Allocation",
+            voteTitle: "Voice Your Priorities",
+            publicStatsTitle: "Live Voting Stats",
+            publicStatsDesc: "Aggregated stats only (no personal details).",
+            publicTotalVotesLabel: "Total votes",
+            publicTodayVotesLabel: "Votes today",
+            publicAvgEducationLabel: "Avg Education",
+            publicAvgInfraLabel: "Avg Infrastructure",
+            publicAgeTitle: "Age groups",
+            publicGenderTitle: "Gender",
+            projectsTitle: "Infrastructure Projects Map",
+            projectsSubtitle: "Click on markers to see project details and report issues.",
+            howTitle: "How CivicSpend Works",
+            faqTitle: "Common Questions",
+            loginPromptText: "Verify your identity via SMS to vote.",
+            votedTitle: "Identity Verified",
+            votedSubtitle: "Your vote is securely recorded against your phone number.",
+            yearCompareTitle: "Year-over-Year Comparison",
+            budgetActualTitle: "Budget vs Actual Spending",
+            faq1: "Where does this data come from?",
+            faq1a: "Our data is fetched from the Open Data portal of the Municipal Corporation. It is updated once the quarterly audits are finalized.",
+            faq2: "How secure is my vote?",
+            faq2a: "Votes are cryptographically signed and stored against your verified phone number. No personal data is shown publicly.",
+            faq3: "Can I change my vote?",
+            faq3a: "One vote per verified number per budget cycle. Contact support@civicspend.gov for special circumstances.",
+            faq4: "Is this official government site?",
+            faq4a: "CivicSpend Pro is a civic-tech initiative approved by the City Finance Department for transparency.",
+            faq5: "How often is data updated?",
+            faq5a: "Financial data is updated every 24 hours. Project status updates are real-time as reported by field officers.",
+            faq6: "Who can see my vote?",
+            faq6a: "Only aggregated anonymous statistics are shown publicly. Individual votes are visible only to authorized administrators for analysis.",
+            eduLabel: "Education",
+            infLabel: "Infrastructure",
+            healthLabel: "Healthcare",
+            sanLabel: "Sanitation"
+        },
+        ta: {
+            heroTitle: "அரசு செலவு, <br><span style='color:var(--brand)'>உங்களுக்காக விளக்கப்பட்டது.</span>",
+            heroSubtitle: "CivicSpend Pro நகராட்சி கணக்குகளை எளிமையாக்குகிறது. தரவைப் பாருங்கள், செலவுகளைப் புரிந்துகொள்ளுங்கள்.",
+            chartTitle: "தற்போதைய நிதி ஒதுக்கீடு",
+            voteTitle: "உங்கள் முன்னுரிமையை தெரிவியுங்கள்",
+            publicStatsTitle: "நேரடி வாக்கு புள்ளிவிவரங்கள்",
+            publicStatsDesc: "மொத்த புள்ளிவிவரங்கள் மட்டும் (தனிப்பட்ட விவரம் இல்லை).",
+            publicTotalVotesLabel: "மொத்த வாக்குகள்",
+            publicTodayVotesLabel: "இன்றைய வாக்குகள்",
+            publicAvgEducationLabel: "சராசரி கல்வி",
+            publicAvgInfraLabel: "சராசரி உள்கட்டமைப்பு",
+            publicAgeTitle: "வயது குழுக்கள்",
+            publicGenderTitle: "பாலினம்",
+            projectsTitle: "மெய்ய அடிப்படை வேலை அட்டவணை",
+            projectsSubtitle: "மார்க்கர்களை கிளிக் செய்து விவரங்களை பாருங்கள்.",
+            howTitle: "CivicSpend எப்படி வேலை செய்கிறது",
+            faqTitle: "பொதுவான கேள்விகள்",
+            loginPromptText: "SMS மூலம் உங்கள் அடையாளத்தை சரிபார்க்கவும்.",
+            votedTitle: "அடையாளம் சரிபார்க்கப்பட்டது",
+            votedSubtitle: "உங்கள் வாக்கு உங்கள் தொலைபேசி எண்ணில் பாதுகாப்பாக பதிவு செய்யப்பட்டுள்ளது.",
+            eduLabel: "கல்வி",
+            infLabel: "உள்கட்டமைப்பு",
+            healthLabel: "சுகாதாரம்",
+            sanLabel: "சுகாதாரம்"
+        },
+        hi: {
+            heroTitle: "सरकारी खर्च, <br><span style='color:var(--brand)'>आपके लिए सरल.</span>",
+            heroSubtitle: "CivicSpend Pro जटिल नगरपालिका लेजर को आसान बनाता है। डेटा देखें, खर्च समझें।",
+            chartTitle: "वर्तमान संसाधन आवंटन",
+            voteTitle: "अपनी प्राथमिकताएँ बताएं",
+            publicStatsTitle: "लाइव वोट आँकड़े",
+            publicStatsDesc: "केवल समेकित आँकड़े (कोई व्यक्तिगत विवरण नहीं).",
+            publicTotalVotesLabel: "कुल वोट",
+            publicTodayVotesLabel: "आज के वोट",
+            publicAvgEducationLabel: "औसत शिक्षा",
+            publicAvgInfraLabel: "औसत बुनियादी ढांचा",
+            publicAgeTitle: "आयु समूह",
+            publicGenderTitle: "लिंग",
+            projectsTitle: "बुनियादी ढांचा परियोजनाएँ",
+            projectsSubtitle: "विवरण देखने के लिए मार्कर पर क्लिक करें।",
+            howTitle: "CivicSpend कैसे काम करता है",
+            faqTitle: "सामान्य प्रश्न",
+            loginPromptText: "वोट देने के लिए अपनी पहचान सत्यापित करें।",
+            votedTitle: "पहचान सत्यापित",
+            votedSubtitle: "आपका वोट आपके फोन नंबर पर सुरक्षित रूप से दर्ज किया गया है।",
+            eduLabel: "शिक्षा",
+            infLabel: "बुनियादी ढांचा",
+            healthLabel: "स्वास्थ्य सेवा",
+            sanLabel: "स्वच्छता"
+        }
+    };
+
+    function applyLanguage(lang) {
+        const t = I18N[lang] || I18N.en;
+        const elements = [
+            'heroTitle', 'heroSubtitle', 'chartTitle', 'voteTitle', 'publicStatsTitle', 
+            'publicStatsDesc', 'publicTotalVotesLabel', 'publicTodayVotesLabel',
+            'publicAvgEducationLabel', 'publicAvgInfraLabel', 'publicAgeTitle', 
+            'publicGenderTitle', 'projectsTitle', 'projectsSubtitle', 'howTitle', 
+            'faqTitle', 'loginPromptText', 'votedTitle', 'votedSubtitle',
+            'yearCompareTitle', 'budgetActualTitle', 'eduLabel', 'infLabel',
+            'healthLabel', 'sanLabel', 'faq1', 'faq1a', 'faq2', 'faq2a',
+            'faq3', 'faq3a', 'faq4', 'faq4a', 'faq5', 'faq5a', 'faq6', 'faq6a'
+        ];
+        
+        elements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (el.tagName === 'SPAN' && el.parentElement && el.parentElement.classList.contains('accordion-header')) {
+                    el.textContent = t[id] || el.textContent;
+                } else if (el.tagName === 'SPAN' && el.parentElement && el.parentElement.classList.contains('accordion-content')) {
+                    el.textContent = t[id] || el.textContent;
+                } else {
+                    el.textContent = t[id] || el.textContent;
+                }
+            }
+        });
+    }
+
     // ENTRY MODAL FUNCTIONS
     window.chooseEntry = function(type) {
         document.getElementById('entryUserActions').style.display = 'none';
@@ -510,58 +738,147 @@
             document.getElementById('entryAdminActions').style.display = 'block';
         }
     };
-    
+
     window.closeEntryModal = function() {
         document.getElementById('entryModal').style.display = 'none';
     };
-    
+
     window.enterAsGuest = function() {
         currentUser = null;
         isAdmin = false;
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('isAdmin');
         closeEntryModal();
         updateUI();
+        loadPublicStats();
     };
-    
-    // LOGIN MODAL FUNCTIONS
-    window.openLoginModal = function(type) {
+
+    // LOGIN FUNCTIONS
+    window.openLoginModal = function() {
         document.getElementById('loginModal').style.display = 'block';
-        
-        if (type === 'user') {
-            document.getElementById('userLoginForm').style.display = 'block';
-            document.getElementById('adminLoginForm').style.display = 'none';
-            document.getElementById('otpContainer').style.display = 'none';
-            document.getElementById('modalTitle').textContent = 'User Login';
-        } else if (type === 'admin') {
-            document.getElementById('userLoginForm').style.display = 'none';
-            document.getElementById('adminLoginForm').style.display = 'block';
-            document.getElementById('otpContainer').style.display = 'none';
-            document.getElementById('modalTitle').textContent = 'Admin Login';
-        }
     };
-    
+
     window.closeLoginModal = function() {
         document.getElementById('loginModal').style.display = 'none';
     };
-    
-    window.switchToAdminLogin = function() {
-        document.getElementById('userLoginForm').style.display = 'none';
-        document.getElementById('adminLoginForm').style.display = 'block';
-        document.getElementById('otpContainer').style.display = 'none';
-        document.getElementById('modalTitle').textContent = 'Admin Login';
+
+    window.openAdminLogin = function() {
+        document.getElementById('adminLoginModal').style.display = 'block';
     };
-    
-    window.switchToUserLogin = function() {
-        document.getElementById('adminLoginForm').style.display = 'none';
-        document.getElementById('userLoginForm').style.display = 'block';
-        document.getElementById('otpContainer').style.display = 'none';
-        document.getElementById('modalTitle').textContent = 'User Login';
+
+    window.closeAdminLoginModal = function() {
+        document.getElementById('adminLoginModal').style.display = 'none';
     };
-    
-    // ADMIN LOGIN - Accepts any email/password
+
+    // USER OTP FUNCTIONS
+    window.sendOTP = async function() {
+        const phoneNumber = document.getElementById('phoneNumber').value;
+        
+        if (!phoneNumber || phoneNumber.length < 10) {
+            alert('Please enter a valid phone number');
+            return;
+        }
+        
+        const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+91${phoneNumber.replace(/\D/g, '')}`;
+        
+        try {
+            // Initialize recaptcha
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible'
+            });
+            
+            const appVerifier = window.recaptchaVerifier;
+            const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+            confirmationResult = result;
+            
+            document.getElementById('userLoginForm').style.display = 'none';
+            document.getElementById('otpContainer').style.display = 'block';
+            
+            alert('Demo: OTP sent to ' + formattedPhone + '\nUse 123456 for demo');
+            
+        } catch (error) {
+            console.error("Error sending OTP:", error);
+            
+            // Demo mode - simulate OTP send
+            confirmationResult = {
+                confirm: async (code) => {
+                    if (code === "123456") {
+                        currentUser = {
+                            uid: 'demo-user-' + Date.now(),
+                            phoneNumber: formattedPhone,
+                            displayName: 'Demo User'
+                        };
+                        isAdmin = false;
+                        
+                        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                        localStorage.setItem('isAdmin', 'false');
+                        
+                        updateUI();
+                        closeLoginModal();
+                        checkUserVote();
+                        return { user: currentUser };
+                    } else {
+                        throw new Error("Invalid OTP");
+                    }
+                }
+            };
+            
+            document.getElementById('userLoginForm').style.display = 'none';
+            document.getElementById('otpContainer').style.display = 'block';
+            alert('Demo: Simulating OTP send to ' + formattedPhone + '\nUse 123456 as OTP');
+        }
+    };
+
+    window.verifyOTP = async function() {
+        const code = document.getElementById('verificationCode').value;
+        
+        if (!code || code.length !== 6) {
+            alert('Please enter a 6-digit OTP');
+            return;
+        }
+        
+        try {
+            const result = await confirmationResult.confirm(code);
+            currentUser = result.user;
+            isAdmin = false;
+            
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            localStorage.setItem('isAdmin', 'false');
+            
+            updateUI();
+            closeLoginModal();
+            checkUserVote();
+            alert('Login successful!');
+            
+        } catch (error) {
+            // Demo fallback
+            if (code === "123456") {
+                currentUser = {
+                    uid: 'demo-user-' + Date.now(),
+                    phoneNumber: document.getElementById('phoneNumber').value || '+919876543210',
+                    displayName: 'Demo User'
+                };
+                isAdmin = false;
+                
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                localStorage.setItem('isAdmin', 'false');
+                
+                updateUI();
+                closeLoginModal();
+                checkUserVote();
+                alert('Demo login successful!');
+            } else {
+                alert('Invalid OTP. Use 123456 for demo');
+            }
+        }
+    };
+
+    // ADMIN LOGIN - Accepts ANY email/password
     window.adminLogin = function() {
         const email = document.getElementById('adminEmail').value || 'admin@civicspend.gov';
         const password = document.getElementById('adminPassword').value || 'admin123';
         
+        // Set admin credentials
         currentUser = {
             uid: 'admin-' + Date.now(),
             email: email,
@@ -569,70 +886,30 @@
         };
         isAdmin = true;
         
-        // Store in localStorage
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         localStorage.setItem('isAdmin', 'true');
         
-        closeLoginModal();
         updateUI();
+        closeAdminLoginModal();
         loadAdminStats();
         alert('✅ Admin login successful!');
     };
-    
-    // USER OTP FUNCTIONS
-    window.sendOTP = function() {
-        const phoneNumber = document.getElementById('phoneNumber').value;
-        
-        if (!phoneNumber) {
-            alert('Please enter a phone number');
-            return;
-        }
-        
-        // Simulate OTP sending
-        document.getElementById('userLoginForm').style.display = 'none';
-        document.getElementById('otpContainer').style.display = 'block';
-        alert('Demo: OTP sent to ' + phoneNumber + '\nUse 123456 as OTP');
-    };
-    
-    window.verifyOTP = function() {
-        const otp = document.getElementById('verificationCode').value;
-        const phoneNumber = document.getElementById('phoneNumber').value;
-        
-        if (otp === '123456') {
-            currentUser = {
-                uid: 'user-' + Date.now(),
-                phoneNumber: phoneNumber || '+919876543210',
-                displayName: 'Demo User'
-            };
-            isAdmin = false;
-            
-            // Store in localStorage
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            localStorage.setItem('isAdmin', 'false');
-            
-            closeLoginModal();
-            updateUI();
-            alert('✅ Login successful!');
-        } else {
-            alert('❌ Invalid OTP. Use 123456 for demo.');
-        }
-    };
-    
+
     // LOGOUT
     window.logout = function() {
+        signOut(auth).catch(e => console.log(e));
+        
         currentUser = null;
         isAdmin = false;
         
-        // Clear localStorage
         localStorage.removeItem('currentUser');
         localStorage.removeItem('isAdmin');
         
-        // Show entry modal again
-        document.getElementById('entryModal').style.display = 'block';
-        
         updateUI();
+        document.getElementById('entryModal').style.display = 'block';
+        loadPublicStats();
     };
-    
+
     // UPDATE UI
     function updateUI() {
         const loginBtn = document.getElementById('loginBtn');
@@ -640,7 +917,7 @@
         const userStatus = document.getElementById('userStatus');
         const adminLink = document.getElementById('adminLink');
         
-        // Check localStorage for saved login
+        // Check localStorage
         const savedUser = localStorage.getItem('currentUser');
         const savedAdmin = localStorage.getItem('isAdmin');
         
@@ -659,16 +936,16 @@
                 adminLink.style.display = 'inline';
                 document.getElementById('adminDashboard').style.display = 'block';
                 
-                // Hide voting interface for admin
                 document.getElementById('login_prompt').style.display = 'none';
                 document.getElementById('voting_controls').style.display = 'none';
                 document.getElementById('already_voted').style.display = 'none';
+                
+                loadAdminStats();
             } else {
                 userStatus.innerHTML = `👤 ${currentUser.phoneNumber || 'User'}`;
                 adminLink.style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'none';
                 
-                // Check if user has voted
                 checkUserVote();
             }
         } else {
@@ -678,33 +955,35 @@
             adminLink.style.display = 'none';
             document.getElementById('adminDashboard').style.display = 'none';
             
-            // Show login prompt in vote card
             document.getElementById('login_prompt').style.display = 'block';
             document.getElementById('voting_controls').style.display = 'none';
             document.getElementById('already_voted').style.display = 'none';
         }
     }
-    
+
     // CHECK USER VOTE
-    function checkUserVote() {
+    async function checkUserVote() {
         if (!currentUser || isAdmin) return;
         
-        const hasVoted = userVotes[currentUser.uid];
-        
-        if (hasVoted) {
-            document.getElementById('already_voted').style.display = 'block';
-            document.getElementById('voting_controls').style.display = 'none';
-            document.getElementById('login_prompt').style.display = 'none';
-        } else {
-            document.getElementById('user_welcome').innerText = "Verified: " + (currentUser.phoneNumber || 'User');
-            document.getElementById('login_prompt').style.display = 'none';
-            document.getElementById('voting_controls').style.display = 'block';
-            document.getElementById('already_voted').style.display = 'none';
+        try {
+            const snapshot = await get(ref(db, 'citizen_proposals/' + currentUser.uid));
+            if (snapshot.exists()) {
+                document.getElementById('already_voted').style.display = 'block';
+                document.getElementById('voting_controls').style.display = 'none';
+                document.getElementById('login_prompt').style.display = 'none';
+            } else {
+                document.getElementById('user_welcome').innerText = "Verified: " + (currentUser.phoneNumber || 'User');
+                document.getElementById('login_prompt').style.display = 'none';
+                document.getElementById('voting_controls').style.display = 'block';
+                document.getElementById('already_voted').style.display = 'none';
+            }
+        } catch (error) {
+            console.log("Error checking vote:", error);
         }
     }
-    
+
     // SEND FEEDBACK (VOTE)
-    window.sendFeedback = function() {
+    window.sendFeedback = async function() {
         if (!currentUser || isAdmin) {
             alert('Please login as a user to vote');
             return;
@@ -712,191 +991,417 @@
         
         const gender = document.getElementById('genderSelect').value;
         const ageGroup = document.getElementById('ageGroupSelect').value;
+        const ward = document.getElementById('wardSelect').value;
         
-        if (!gender || !ageGroup) {
-            alert('Please select gender and age group');
+        if (!gender || !ageGroup || !ward) {
+            alert('Please select gender, age group, and ward');
             return;
         }
         
         const voteData = {
-            uid: currentUser.uid,
             phone: currentUser.phoneNumber || 'Not provided',
+            uid: currentUser.uid,
             gender: gender,
             ageGroup: ageGroup,
+            ward: ward,
             edu: document.getElementById('edu_p').value,
             infra: document.getElementById('inf_p').value,
             health: document.getElementById('health_p').value,
             san: document.getElementById('san_p').value,
-            reason: document.getElementById('voteReason').value,
-            timestamp: new Date().toISOString()
+            reason: document.getElementById('voteReason').value || 'No reason provided',
+            followUpdates: document.getElementById('followUpdates').checked,
+            timestamp: Date.now(),
+            date: new Date().toISOString().split('T')[0]
         };
         
-        // Store vote
-        userVotes[currentUser.uid] = voteData;
-        localStorage.setItem('userVotes', JSON.stringify(userVotes));
-        
-        // Update admin stats
-        adminStats.totalVotes = Object.keys(userVotes).length;
-        adminStats.todayVotes = (adminStats.todayVotes || 0) + 1;
-        if (gender === 'male') adminStats.maleVotes = (adminStats.maleVotes || 0) + 1;
-        if (gender === 'female') adminStats.femaleVotes = (adminStats.femaleVotes || 0) + 1;
-        localStorage.setItem('adminStats', JSON.stringify(adminStats));
-        
-        alert('✅ Vote submitted successfully!');
-        checkUserVote();
-        loadPublicStats();
-        
-        if (isAdmin) {
-            loadAdminStats();
+        try {
+            await set(ref(db, 'citizen_proposals/' + currentUser.uid), voteData);
+            alert('✅ Vote submitted successfully!');
+            checkUserVote();
+            loadPublicStats();
+            if (isAdmin) loadAdminStats();
+        } catch (error) {
+            console.error("Error saving vote:", error);
+            alert('Error saving vote. Please try again.');
         }
     };
-    
+
     // LOAD PUBLIC STATS
-    function loadPublicStats() {
-        const votes = Object.values(userVotes);
-        const today = new Date().toDateString();
-        const todayVotes = votes.filter(vote => new Date(vote.timestamp).toDateString() === today).length;
-        
-        document.getElementById('publicTotalVotes').textContent = votes.length;
-        document.getElementById('publicTodayVotes').textContent = todayVotes;
-        
-        // Load charts
-        loadCharts();
-    }
-    
-    // LOAD ADMIN STATS
-    function loadAdminStats() {
-        if (!isAdmin) return;
-        
-        document.getElementById('totalVotes').textContent = adminStats.totalVotes || 0;
-        document.getElementById('todayVotes').textContent = adminStats.todayVotes || 0;
-        document.getElementById('maleVotes').textContent = adminStats.maleVotes || 0;
-        document.getElementById('femaleVotes').textContent = adminStats.femaleVotes || 0;
-        
-        // Load recent votes
-        const recentVotesList = document.getElementById('recentVotesList');
-        recentVotesList.innerHTML = '';
-        
-        const votes = Object.values(userVotes).slice(-5).reverse();
-        votes.forEach(vote => {
-            const div = document.createElement('div');
-            div.style.padding = '5px';
-            div.style.borderBottom = '1px solid #e2e8f0';
-            div.innerHTML = `<strong>${vote.phone}</strong>: Edu ${vote.edu}%, Infra ${vote.infra}%, Health ${vote.health}%`;
-            recentVotesList.appendChild(div);
-        });
-    }
-    
-    // LOAD CHARTS
-    function loadCharts() {
-        google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(function() {
-            // Budget chart
-            const budgetData = google.visualization.arrayToDataTable([
-                ['Category', 'Amount (₹ Cr)', {role: 'style'}],
-                ['Education', 45, '#2563eb'],
-                ['Healthcare', 32, '#10b981'],
-                ['Infrastructure', 58, '#f59e0b'],
-                ['Sanitation', 25, '#ef4444']
-            ]);
+    async function loadPublicStats() {
+        try {
+            const snapshot = await get(ref(db, 'citizen_proposals'));
+            if (!snapshot.exists()) return;
             
-            const budgetOptions = {
-                pieHole: 0.6,
-                chartArea: {width: '90%', height: '80%'},
-                legend: {position: 'bottom'},
-                backgroundColor: 'transparent'
-            };
+            const votes = Object.values(snapshot.val());
+            const today = new Date().toISOString().split('T')[0];
             
-            const budgetChart = new google.visualization.PieChart(document.getElementById('main_chart'));
-            budgetChart.draw(budgetData, budgetOptions);
-            
-            // Age chart
-            const votes = Object.values(userVotes);
             const ageCounts = { '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 };
             const genderCounts = { 'male': 0, 'female': 0, 'other': 0 };
+            let totalEdu = 0, totalInfra = 0, totalHealth = 0, totalSan = 0;
             
-            votes.forEach(vote => {
-                if (vote.ageGroup && ageCounts[vote.ageGroup] !== undefined) {
-                    ageCounts[vote.ageGroup]++;
+            votes.forEach(v => {
+                if (v.ageGroup && ageCounts[v.ageGroup] !== undefined) {
+                    ageCounts[v.ageGroup]++;
                 }
-                if (vote.gender && genderCounts[vote.gender] !== undefined) {
-                    genderCounts[vote.gender]++;
+                if (v.gender && genderCounts[v.gender] !== undefined) {
+                    genderCounts[v.gender]++;
                 }
-            });
-            
-            const ageData = google.visualization.arrayToDataTable([
-                ['Age', 'Votes', {role: 'style'}],
-                ['18-25', ageCounts['18-25'], '#2563eb'],
-                ['26-35', ageCounts['26-35'], '#10b981'],
-                ['36-50', ageCounts['36-50'], '#f59e0b'],
-                ['50+', ageCounts['50+'], '#ef4444']
-            ]);
-            
-            const genderData = google.visualization.arrayToDataTable([
-                ['Gender', 'Votes', {role: 'style'}],
-                ['Male', genderCounts['male'], '#2563eb'],
-                ['Female', genderCounts['female'], '#10b981'],
-                ['Other', genderCounts['other'], '#f59e0b']
-            ]);
-            
-            const ageChart = new google.visualization.ColumnChart(document.getElementById('publicAgeChart'));
-            ageChart.draw(ageData, {legend: 'none', backgroundColor: 'transparent'});
-            
-            const genderChart = new google.visualization.ColumnChart(document.getElementById('publicGenderChart'));
-            genderChart.draw(genderData, {legend: 'none', backgroundColor: 'transparent'});
-            
-            // Admin charts
-            if (isAdmin) {
-                const adminAgeChart = new google.visualization.ColumnChart(document.getElementById('ageChart'));
-                adminAgeChart.draw(ageData, {legend: 'none', backgroundColor: 'transparent'});
+                if (v.edu) totalEdu += parseInt(v.edu);
+                if (v.infra) totalInfra += parseInt(v.infra);
+                if (v.health) totalHealth += parseInt(v.health);
+                if (v.san) totalSan += parseInt(v.san);
                 
-                const adminGenderChart = new google.visualization.ColumnChart(document.getElementById('genderChart'));
-                adminGenderChart.draw(genderData, {legend: 'none', backgroundColor: 'transparent'});
-            }
-        });
-    }
-    
-    // MAP INITIALIZATION
-    function initMap() {
-        if (typeof L !== 'undefined') {
-            const map = L.map('project-map').setView([12.9716, 77.5946], 12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
-            
-            // Add markers
-            const markers = [
-                { lat: 12.9716, lng: 77.5946, title: 'Smart City Project', desc: 'Digital infrastructure upgrade' },
-                { lat: 12.9816, lng: 77.5846, title: 'Metro Expansion', desc: 'New metro line construction' },
-                { lat: 12.9616, lng: 77.6046, title: 'Waste Management', desc: 'New recycling plant' },
-                { lat: 12.9766, lng: 77.5996, title: 'Public Park', desc: 'Green space development' }
-            ];
-            
-            markers.forEach(marker => {
-                L.marker([marker.lat, marker.lng])
-                    .addTo(map)
-                    .bindPopup(`<b>${marker.title}</b><br>${marker.desc}`);
+                // Check if vote is from today
+                if (v.date === today) {
+                    // This will be counted in the next step
+                }
             });
+            
+            const todayVotes = votes.filter(v => v.date === today).length;
+            
+            document.getElementById('publicTotalVotes').textContent = votes.length;
+            document.getElementById('publicTodayVotes').textContent = todayVotes;
+            document.getElementById('publicAvgEducation').textContent = votes.length > 0 ? Math.round(totalEdu / votes.length) + '%' : '0%';
+            document.getElementById('publicAvgInfra').textContent = votes.length > 0 ? Math.round(totalInfra / votes.length) + '%' : '0%';
+            
+            // Load charts
+            google.charts.setOnLoadCallback(() => {
+                const ageData = google.visualization.arrayToDataTable([
+                    ['Age', 'Votes', {role: 'style'}],
+                    ['18-25', ageCounts['18-25'], '#2563eb'],
+                    ['26-35', ageCounts['26-35'], '#10b981'],
+                    ['36-50', ageCounts['36-50'], '#f59e0b'],
+                    ['50+', ageCounts['50+'], '#ef4444']
+                ]);
+                
+                const genderData = google.visualization.arrayToDataTable([
+                    ['Gender', 'Votes', {role: 'style'}],
+                    ['Male', genderCounts['male'], '#2563eb'],
+                    ['Female', genderCounts['female'], '#10b981'],
+                    ['Other', genderCounts['other'], '#f59e0b']
+                ]);
+                
+                new google.visualization.ColumnChart(document.getElementById('publicAgeChart')).draw(ageData, {
+                    legend: 'none',
+                    backgroundColor: 'transparent',
+                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
+                });
+                
+                new google.visualization.ColumnChart(document.getElementById('publicGenderChart')).draw(genderData, {
+                    legend: 'none',
+                    backgroundColor: 'transparent',
+                    colors: ['#2563eb', '#10b981', '#f59e0b']
+                });
+            });
+            
+        } catch (error) {
+            console.log("Error loading public stats:", error);
         }
     }
+
+    // LOAD ADMIN STATS
+    async function loadAdminStats() {
+        if (!isAdmin) return;
+        
+        try {
+            const snapshot = await get(ref(db, 'citizen_proposals'));
+            const votes = Object.values(snapshot.val() || {});
+            const today = new Date().toISOString().split('T')[0];
+            
+            const ageCounts = { '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 };
+            const genderCounts = { 'male': 0, 'female': 0, 'other': 0 };
+            const wardCounts = { 'Ward 1': 0, 'Ward 2': 0, 'Ward 3': 0, 'Ward 4': 0, 'Ward 5': 0 };
+            let totalEdu = 0, totalInfra = 0, totalHealth = 0, totalSan = 0;
+            
+            votes.forEach(v => {
+                if (v.ageGroup && ageCounts[v.ageGroup] !== undefined) {
+                    ageCounts[v.ageGroup]++;
+                }
+                if (v.gender && genderCounts[v.gender] !== undefined) {
+                    genderCounts[v.gender]++;
+                }
+                if (v.ward && wardCounts[v.ward] !== undefined) {
+                    wardCounts[v.ward]++;
+                }
+                if (v.edu) totalEdu += parseInt(v.edu);
+                if (v.infra) totalInfra += parseInt(v.infra);
+                if (v.health) totalHealth += parseInt(v.health);
+                if (v.san) totalSan += parseInt(v.san);
+            });
+            
+            const todayVotes = votes.filter(v => v.date === today).length;
+            
+            document.getElementById('totalVotes').textContent = votes.length;
+            document.getElementById('todayVotes').textContent = todayVotes;
+            document.getElementById('maleVotes').textContent = genderCounts['male'];
+            document.getElementById('femaleVotes').textContent = genderCounts['female'];
+            document.getElementById('ward1Votes').textContent = wardCounts['Ward 1'];
+            document.getElementById('ward2Votes').textContent = wardCounts['Ward 2'];
+            
+            // Update average priorities
+            if (votes.length > 0) {
+                document.getElementById('avgEdu').textContent = Math.round(totalEdu / votes.length) + '%';
+                document.getElementById('avgInfra').textContent = Math.round(totalInfra / votes.length) + '%';
+                document.getElementById('avgHealth').textContent = Math.round(totalHealth / votes.length) + '%';
+                document.getElementById('avgSan').textContent = Math.round(totalSan / votes.length) + '%';
+            }
+            
+            // Update recent votes list
+            const recentVotesList = document.getElementById('recentVotesList');
+            recentVotesList.innerHTML = '';
+            
+            const recentVotes = votes.slice(-10).reverse();
+            recentVotes.forEach(vote => {
+                const div = document.createElement('div');
+                div.style.padding = '8px';
+                div.style.borderBottom = '1px solid #e2e8f0';
+                div.innerHTML = `
+                    <strong>${vote.phone || 'Unknown'}</strong><br>
+                    <small>${vote.ward || 'No ward'} | ${vote.ageGroup || 'No age'} | ${vote.gender || 'No gender'}</small><br>
+                    <small>Edu: ${vote.edu}%, Infra: ${vote.infra}%, Health: ${vote.health}%, San: ${vote.san}%</small>
+                `;
+                recentVotesList.appendChild(div);
+            });
+            
+            // Load admin charts
+            google.charts.setOnLoadCallback(() => {
+                const ageData = google.visualization.arrayToDataTable([
+                    ['Age', 'Votes'],
+                    ['18-25', ageCounts['18-25']],
+                    ['26-35', ageCounts['26-35']],
+                    ['36-50', ageCounts['36-50']],
+                    ['50+', ageCounts['50+']]
+                ]);
+                
+                const genderData = google.visualization.arrayToDataTable([
+                    ['Gender', 'Votes'],
+                    ['Male', genderCounts['male']],
+                    ['Female', genderCounts['female']],
+                    ['Other', genderCounts['other']]
+                ]);
+                
+                new google.visualization.PieChart(document.getElementById('ageChart')).draw(ageData, {
+                    title: 'Age Distribution',
+                    backgroundColor: 'transparent',
+                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
+                });
+                
+                new google.visualization.PieChart(document.getElementById('genderChart')).draw(genderData, {
+                    title: 'Gender Distribution',
+                    backgroundColor: 'transparent',
+                    colors: ['#2563eb', '#10b981', '#f59e0b']
+                });
+            });
+            
+        } catch (error) {
+            console.log("Error loading admin stats:", error);
+        }
+    }
+
+    // INITIALIZE MAP
+    function initMap() {
+        map = L.map('project-map').setView([12.9716, 77.5946], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Add project markers
+        const projects = [
+            { lat: 12.9716, lng: 77.5946, title: 'Smart School Project', desc: 'New digital literacy wing', ward: 'Ward 5', status: 'completed', amount: '₹2.5 Cr' },
+            { lat: 12.9816, lng: 77.5846, title: 'Metro Expansion', desc: 'New metro line construction', ward: 'Ward 3', status: 'progress', amount: '₹15 Cr' },
+            { lat: 12.9616, lng: 77.6046, title: 'Waste Management Plant', desc: 'New recycling facility', ward: 'Ward 2', status: 'planned', amount: '₹8 Cr' },
+            { lat: 12.9766, lng: 77.5996, title: 'Public Park Development', desc: 'Green space with solar lighting', ward: 'Ward 4', status: 'progress', amount: '₹3.2 Cr' },
+            { lat: 12.9666, lng: 77.5896, title: 'Water Pipeline Upgrade', desc: '5km pipeline replacement', ward: 'Ward 1', status: 'completed', amount: '₹4.5 Cr' }
+        ];
+        
+        projects.forEach(project => {
+            let markerColor = 'blue';
+            if (project.status === 'completed') markerColor = 'green';
+            if (project.status === 'progress') markerColor = 'orange';
+            if (project.status === 'planned') markerColor = 'gray';
+            
+            const marker = L.marker([project.lat, project.lng], {
+                icon: L.divIcon({
+                    className: 'custom-icon',
+                    html: `<div style="background:${markerColor}; width:20px; height:20px; border-radius:50%; border:2px solid white;"></div>`
+                })
+            }).addTo(map);
+            
+            marker.bindPopup(`
+                <b>${project.title}</b><br>
+                ${project.desc}<br>
+                <strong>Ward:</strong> ${project.ward}<br>
+                <strong>Status:</strong> ${project.status}<br>
+                <strong>Budget:</strong> ${project.amount}<br>
+                <button onclick="reportIssue('${project.title}')" style="margin-top:5px; padding:5px 10px; background:var(--danger); color:white; border:none; border-radius:4px; cursor:pointer;">
+                    Report Issue
+                </button>
+            `);
+            
+            mapMarkers.push({ marker, project });
+        });
+    }
+
+    window.filterMapByWard = function() {
+        const ward = document.getElementById('wardFilter').value;
+        mapMarkers.forEach(item => {
+            if (ward === 'all' || item.project.ward.includes(ward)) {
+                item.marker.addTo(map);
+            } else {
+                map.removeLayer(item.marker);
+            }
+        });
+    };
+
+    window.filterMapByStatus = function() {
+        const status = document.getElementById('statusFilter').value;
+        mapMarkers.forEach(item => {
+            if (status === 'all' || item.project.status === status) {
+                item.marker.addTo(map);
+            } else {
+                map.removeLayer(item.marker);
+            }
+        });
+    };
+
+    window.reportIssue = function(projectTitle) {
+        if (!currentUser) {
+            alert('Please login to report an issue');
+            return;
+        }
+        const issue = prompt(`Describe the issue with ${projectTitle}:`);
+        if (issue) {
+            alert('Thank you! Your report has been submitted.');
+            // In real implementation, save to Firebase
+        }
+    };
+
+    // LOAD CHARTS
+    google.charts.load('current', {'packages':['corechart']});
     
+    onValue(ref(db, 'budgets/2024'), snapshot => {
+        const val = snapshot.val();
+        if (val) {
+            google.charts.setOnLoadCallback(() => {
+                // Main pie chart
+                const data = google.visualization.arrayToDataTable([
+                    ['Category', 'Amount (₹ Cr)', {role: 'style'}],
+                    ['Education', val.education || 45, '#2563eb'],
+                    ['Healthcare', val.health || 32, '#10b981'],
+                    ['Infrastructure', val.roads || 58, '#f59e0b'],
+                    ['Sanitation', val.water || 25, '#ef4444']
+                ]);
+                
+                new google.visualization.PieChart(document.getElementById('main_chart')).draw(data, {
+                    pieHole: 0.6,
+                    chartArea: {width: '90%', height: '80%'},
+                    legend: {position: 'bottom'},
+                    backgroundColor: 'transparent',
+                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
+                });
+                
+                // Year-over-year comparison
+                const yearData = google.visualization.arrayToDataTable([
+                    ['Category', '2023', '2024'],
+                    ['Education', 42, 45],
+                    ['Healthcare', 30, 32],
+                    ['Infrastructure', 52, 58],
+                    ['Sanitation', 22, 25]
+                ]);
+                
+                new google.visualization.ColumnChart(document.getElementById('year_comparison_chart')).draw(yearData, {
+                    title: 'Year-over-Year Comparison (₹ Cr)',
+                    legend: {position: 'top'},
+                    backgroundColor: 'transparent',
+                    colors: ['#94a3b8', '#2563eb']
+                });
+                
+                // Budget vs Actual
+                const budgetData = google.visualization.arrayToDataTable([
+                    ['Category', 'Budgeted', 'Actual'],
+                    ['Education', 48, 45],
+                    ['Healthcare', 35, 32],
+                    ['Infrastructure', 60, 58],
+                    ['Sanitation', 27, 25]
+                ]);
+                
+                new google.visualization.ColumnChart(document.getElementById('budget_actual_chart')).draw(budgetData, {
+                    title: 'Budget vs Actual Spending (₹ Cr)',
+                    legend: {position: 'top'},
+                    backgroundColor: 'transparent',
+                    colors: ['#f59e0b', '#10b981']
+                });
+            });
+        }
+    });
+
+    // LOAD LEDGER DATA
+    async function loadLedgerData() {
+        try {
+            const snapshot = await get(ref(db, 'ledger'));
+            const tbody = document.getElementById('ledgerBody');
+            tbody.innerHTML = '';
+            
+            if (snapshot.exists()) {
+                const ledger = snapshot.val();
+                Object.values(ledger).forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.date || '2026-01-14'}</td>
+                        <td>${item.category || 'Education'}</td>
+                        <td>${item.description || 'Smart School Project'}</td>
+                        <td>${item.amount ? '₹' + parseInt(item.amount).toLocaleString('en-IN') : '₹2,50,00,000'}</td>
+                        <td>${item.ward || 'Ward 5'}</td>
+                        <td>${item.vendor || 'ABC Constructions'}</td>
+                        <td><span style="padding:4px 8px; border-radius:4px; background:#dcfce7; color:#166534; font-size:0.8rem;">Completed</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                // Demo data
+                const demoData = [
+                    ['2026-01-14', 'Education', 'Smart School Project', '₹2,50,00,000', 'Ward 5', 'ABC Constructions', 'Completed'],
+                    ['2026-01-13', 'Healthcare', 'Primary Health Center', '₹1,80,00,000', 'Ward 7', 'MediCare Builders', 'In Progress'],
+                    ['2026-01-12', 'Infrastructure', 'Road Widening', '₹3,20,00,000', 'Ward 3', 'Roads India Ltd', 'Completed'],
+                    ['2026-01-11', 'Sanitation', 'Sewage Treatment Plant', '₹4,50,00,000', 'Ward 9', 'CleanWater Tech', 'Planned']
+                ];
+                
+                demoData.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${row[0]}</td>
+                        <td>${row[1]}</td>
+                        <td>${row[2]}</td>
+                        <td>${row[3]}</td>
+                        <td>${row[4]}</td>
+                        <td>${row[5]}</td>
+                        <td><span style="padding:4px 8px; border-radius:4px; background:#dcfce7; color:#166534; font-size:0.8rem;">${row[6]}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        } catch (error) {
+            console.log("Error loading ledger:", error);
+        }
+    }
+
     // UTILITY FUNCTIONS
     window.updateSlider = function(id, value) {
         document.getElementById(id).textContent = value + '%';
     };
-    
+
     window.toggleAccordion = function(header) {
         const content = header.nextElementSibling;
         content.classList.toggle('active');
         header.lastElementChild.textContent = content.classList.contains('active') ? '−' : '+';
     };
-    
+
     window.downloadCSV = function() {
-        const csv = 'Date,Category,Description,Amount,Ward,Vendor\n' +
-                   '2026-01-14,Education,Smart School Project,25000000,Ward 5,ABC Constructions\n' +
-                   '2026-01-13,Healthcare,Primary Health Center,18000000,Ward 7,MediCare Builders\n' +
-                   '2026-01-12,Infrastructure,Road Widening,32000000,Ward 3,Roads India Ltd\n' +
-                   '2026-01-11,Sanitation,Sewage Treatment Plant,45000000,Ward 9,CleanWater Tech';
+        const csv = 'Date,Category,Description,Amount,Ward,Vendor,Status\n' +
+                   '2026-01-14,Education,Smart School Project,25000000,Ward 5,ABC Constructions,Completed\n' +
+                   '2026-01-13,Healthcare,Primary Health Center,18000000,Ward 7,MediCare Builders,In Progress\n' +
+                   '2026-01-12,Infrastructure,Road Widening,32000000,Ward 3,Roads India Ltd,Completed\n' +
+                   '2026-01-11,Sanitation,Sewage Treatment Plant,45000000,Ward 9,CleanWater Tech,Planned';
         
         const blob = new Blob([csv], {type: 'text/csv'});
         const url = URL.createObjectURL(blob);
@@ -905,14 +1410,14 @@
         a.download = 'civicspend_ledger.csv';
         a.click();
     };
-    
+
     window.downloadJSON = function() {
         const data = {
             ledger: [
-                { date: '2026-01-14', category: 'Education', description: 'Smart School Project', amount: 25000000, ward: 'Ward 5', vendor: 'ABC Constructions' },
-                { date: '2026-01-13', category: 'Healthcare', description: 'Primary Health Center', amount: 18000000, ward: 'Ward 7', vendor: 'MediCare Builders' },
-                { date: '2026-01-12', category: 'Infrastructure', description: 'Road Widening', amount: 32000000, ward: 'Ward 3', vendor: 'Roads India Ltd' },
-                { date: '2026-01-11', category: 'Sanitation', description: 'Sewage Treatment Plant', amount: 45000000, ward: 'Ward 9', vendor: 'CleanWater Tech' }
+                { date: '2026-01-14', category: 'Education', description: 'Smart School Project', amount: 25000000, ward: 'Ward 5', vendor: 'ABC Constructions', status: 'Completed' },
+                { date: '2026-01-13', category: 'Healthcare', description: 'Primary Health Center', amount: 18000000, ward: 'Ward 7', vendor: 'MediCare Builders', status: 'In Progress' },
+                { date: '2026-01-12', category: 'Infrastructure', description: 'Road Widening', amount: 32000000, ward: 'Ward 3', vendor: 'Roads India Ltd', status: 'Completed' },
+                { date: '2026-01-11', category: 'Sanitation', description: 'Sewage Treatment Plant', amount: 45000000, ward: 'Ward 9', vendor: 'CleanWater Tech', status: 'Planned' }
             ]
         };
         
@@ -923,20 +1428,26 @@
         a.download = 'civicspend_data.json';
         a.click();
     };
-    
+
+    window.downloadPDF = function() {
+        alert('PDF report would be generated and downloaded. This is a demo feature.');
+    };
+
+    window.exportVoteData = function() {
+        alert('Vote data export would be generated. This is a demo feature.');
+    };
+
     window.changeLanguage = function() {
         currentLanguage = document.getElementById('languageSelect').value;
-        // Translation implementation would go here
-        alert('Language changed to ' + (currentLanguage === 'en' ? 'English' : 
-                                      currentLanguage === 'ta' ? 'Tamil' : 'Hindi'));
+        applyLanguage(currentLanguage);
     };
-    
+
     // CHATBOT FUNCTIONS
     window.toggleChatbot = function() {
         const panel = document.getElementById('chatbotPanel');
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
     };
-    
+
     window.sendChat = function() {
         const input = document.getElementById('chatInput');
         const message = input.value.trim();
@@ -946,7 +1457,7 @@
         const chatMessages = document.getElementById('chatMessages');
         
         // Add user message
-        chatMessages.innerHTML += `<div><strong>You:</strong> ${message}</div>`;
+        chatMessages.innerHTML += `<div style="margin-bottom:10px;"><strong>You:</strong> ${message}</div>`;
         input.value = '';
         
         // Generate bot response
@@ -954,46 +1465,60 @@
         
         // Add bot response after a short delay
         setTimeout(() => {
-            chatMessages.innerHTML += `<div><strong>Bot:</strong> ${response}</div>`;
+            chatMessages.innerHTML += `<div style="margin-bottom:10px; background:#eff6ff; padding:10px; border-radius:8px;"><strong>Bot:</strong> ${response}</div>`;
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }, 500);
     };
-    
+
     function generateBotResponse(message) {
         const lowerMessage = message.toLowerCase();
         
         // Improved chatbot responses
         if (lowerMessage.includes('budget') || lowerMessage.includes('spending') || lowerMessage.includes('money')) {
-            return "The current annual budget is ₹160 Cr allocated across Education (28%), Healthcare (20%), Infrastructure (36%), and Sanitation (16%). You can see the detailed breakdown in the main chart above.";
+            return "The current annual budget is ₹160 Cr allocated across Education (28%), Healthcare (20%), Infrastructure (36%), and Sanitation (16%). You can see the detailed breakdown in the main chart and download the data.";
         } else if (lowerMessage.includes('vote') || lowerMessage.includes('voting') || lowerMessage.includes('priority')) {
-            return "You can vote on budget priorities by logging in with your phone number. Use the sliders to allocate percentages to Education, Infrastructure, Healthcare, and Sanitation. Each verified user gets one vote per budget cycle.";
+            return "You can vote on budget priorities by logging in with your phone number. Select your gender, age group, ward, and use sliders to allocate percentages to Education, Infrastructure, Healthcare, and Sanitation.";
         } else if (lowerMessage.includes('project') || lowerMessage.includes('map') || lowerMessage.includes('location')) {
-            return "Check the Infrastructure Projects Map section to see active projects in your city. Click on markers for details and to report issues.";
+            return "Check the Infrastructure Projects Map section to see active projects in your city. You can filter by ward and status. Click on markers for details and to report issues.";
         } else if (lowerMessage.includes('login') || lowerMessage.includes('sign in') || lowerMessage.includes('register')) {
-            return "Users: Click 'Login to Vote' and enter any phone number. Use '123456' as OTP. Admins: Use any email and password to login as admin.";
+            return "Users: Enter phone number and use '123456' as OTP. Admins: Use any email and password to login as admin.";
         } else if (lowerMessage.includes('admin') || lowerMessage.includes('dashboard')) {
-            return "Admin dashboard shows voting statistics, demographic breakdowns, and recent votes. Login as admin with any email/password to access.";
+            return "Admin dashboard shows voting statistics, demographic breakdowns, ward-wise distribution, and recent votes. Login as admin with any email/password to access.";
         } else if (lowerMessage.includes('data') || lowerMessage.includes('source') || lowerMessage.includes('where')) {
             return "Data comes from the Municipal Financial Management System (MFMS) and is updated every 24 hours. All data is validated and audited quarterly.";
         } else if (lowerMessage.includes('help') || lowerMessage.includes('how') || lowerMessage.includes('what')) {
-            return "I can help with: 1) Budget information 2) Voting process 3) Project locations 4) Login help 5) Data sources. What would you like to know?";
+            return "I can help with: 1) Budget information 2) Voting process 3) Project locations 4) Login help 5) Data sources 6) Language change 7) Download data.";
+        } else if (lowerMessage.includes('language') || lowerMessage.includes('தமிழ்') || lowerMessage.includes('हिंदी')) {
+            return "You can change the website language using the dropdown in the navigation bar. We support English, Tamil, and Hindi.";
+        } else if (lowerMessage.includes('download') || lowerMessage.includes('export') || lowerMessage.includes('csv')) {
+            return "You can download data in CSV, JSON, or PDF format using the download buttons below the charts.";
+        } else if (lowerMessage.includes('ward') || lowerMessage.includes('area') || lowerMessage.includes('location')) {
+            return "You can filter projects by ward using the dropdown in the map section. Also, select your ward when voting to get ward-specific insights.";
+        } else if (lowerMessage.includes('report') || lowerMessage.includes('issue') || lowerMessage.includes('problem')) {
+            return "To report an issue with a project, click on the marker on the map and then click 'Report Issue' button. You need to be logged in.";
         } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
             return "Hello! I'm your CivicSpend assistant. How can I help you today?";
+        } else if (lowerMessage.includes('thank') || lowerMessage.includes('thanks')) {
+            return "You're welcome! Is there anything else I can help you with?";
         } else {
-            return "I understand you're asking about '" + message.split(' ')[0] + "'. For specific help with budget, voting, projects, or login issues, please ask more specifically or check the FAQ section.";
+            return "I understand you're asking about '" + message + "'. For specific help with budget, voting, projects, or login issues, please ask more specifically or check the FAQ section.";
         }
     }
-    
+
     // INITIALIZE ON LOAD
     window.addEventListener('load', function() {
         // Initialize map
         initMap();
         
-        // Load statistics
+        // Load data
+        loadLedgerData();
         loadPublicStats();
         
         // Update UI
         updateUI();
+        
+        // Apply default language
+        applyLanguage('en');
         
         // Update data freshness
         updateDataFreshness();
@@ -1009,8 +1534,17 @@
                 row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
         });
+        
+        // Initialize Firebase auth state listener
+        onAuthStateChanged(auth, (user) => {
+            if (user && !currentUser) {
+                currentUser = user;
+                isAdmin = localStorage.getItem('isAdmin') === 'true';
+                updateUI();
+            }
+        });
     });
-    
+
     function updateDataFreshness() {
         const hours = Math.floor(Math.random() * 6);
         document.getElementById('dataFreshness').textContent = `Data synced ${hours}h ago`;
