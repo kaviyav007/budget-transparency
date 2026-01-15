@@ -1716,7 +1716,179 @@
         if (element) element.textContent = `Data synced ${hours}h ago`;
     }
 </script>
+<script>
+// ====== VERCELL/VANILLA JS FIX ======
+// This will work on ANY hosting
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== CivicSpend Interactive Fix Loading ===');
+    
+    // REMOVE ALL inline event handlers (they cause issues)
+    function removeAllInlineHandlers() {
+        var elements = document.querySelectorAll('*');
+        for (var i = 0; i < elements.length; i++) {
+            var el = elements[i];
+            ['onclick', 'onchange', 'oninput', 'onkeypress'].forEach(function(attr) {
+                if (el.hasAttribute(attr)) {
+                    el.removeAttribute(attr);
+                }
+            });
+        }
+    }
+    
+    removeAllInlineHandlers();
+    
+    // FIX 1: ALL NAVIGATION LINKS
+    var navLinks = document.querySelectorAll('a[href^="#"]');
+    for (var i = 0; i < navLinks.length; i++) {
+        navLinks[i].addEventListener('click', function(e) {
+            e.preventDefault();
+            var targetId = this.getAttribute('href').substring(1);
+            console.log('Navigating to:', targetId);
+            
+            var targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                // Smooth scroll to element
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        });
+        
+        // Make cursor visible
+        navLinks[i].style.cursor = 'pointer';
+    }
+    
+    // FIX 2: LANGUAGE SELECTOR
+    var langSelect = document.getElementById('languageSelect');
+    if (langSelect) {
+        langSelect.addEventListener('change', function() {
+            console.log('Language changed to:', this.value);
+            // If your translation function exists, call it
+            if (typeof window.changeLanguage === 'function') {
+                window.changeLanguage();
+            } else {
+                // Simple demo translation
+                var elements = {
+                    'heroTitle': {en: 'Government Spending, <br><span style="color:#2563eb">Decoded for You.</span>', ta: 'அரசு செலவு விளக்கம்', hi: 'सरकारी खर्च सरल'},
+                    'heroSubtitle': {en: 'CivicSpend Pro bridges the gap...', ta: 'நகராட்சி தரவு', hi: 'नगरपालिका डेटा'}
+                };
+                
+                for (var id in elements) {
+                    var el = document.getElementById(id);
+                    if (el && elements[this.value]) {
+                        el.innerHTML = elements[this.value][id] || elements['en'][id];
+                    }
+                }
+            }
+        });
+    }
+    
+    // FIX 3: MODAL BUTTONS
+    setTimeout(function() {
+        // Entry modal buttons
+        var buttons = document.querySelectorAll('button');
+        buttons.forEach(function(btn) {
+            var btnText = btn.textContent || btn.innerText;
+            
+            if (btnText.includes('Continue as User')) {
+                btn.addEventListener('click', function() {
+                    document.getElementById('entryUserActions').style.display = 'block';
+                    document.getElementById('entryAdminActions').style.display = 'none';
+                });
+            }
+            
+            if (btnText.includes('Continue as Admin')) {
+                btn.addEventListener('click', function() {
+                    document.getElementById('entryAdminActions').style.display = 'block';
+                    document.getElementById('entryUserActions').style.display = 'none';
+                });
+            }
+            
+            if (btnText.includes('Browse as Guest')) {
+                btn.addEventListener('click', function() {
+                    document.getElementById('entryModal').style.display = 'none';
+                    // Scroll to dashboard
+                    document.getElementById('dashboard').scrollIntoView({behavior: 'smooth'});
+                });
+            }
+            
+            if (btnText.includes('Login to Vote')) {
+                btn.addEventListener('click', function() {
+                    document.getElementById('loginModal').style.display = 'block';
+                    if (document.getElementById('entryModal')) {
+                        document.getElementById('entryModal').style.display = 'none';
+                    }
+                });
+            }
+        });
+        
+        // Close modal buttons
+        var closeButtons = document.querySelectorAll('.close-modal');
+        closeButtons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                this.closest('.login-modal').style.display = 'none';
+            });
+        });
+    }, 300);
+    
+    // FIX 4: ACCORDION
+    var accordionHeaders = document.querySelectorAll('.accordion-header');
+    accordionHeaders.forEach(function(header) {
+        header.addEventListener('click', function() {
+            var content = this.nextElementSibling;
+            var isActive = content.classList.contains('active');
+            
+            // Toggle this one
+            content.classList.toggle('active');
+            this.querySelector('span:last-child').textContent = isActive ? '+' : '−';
+        });
+    });
+    
+    // FIX 5: SLIDERS
+    var sliders = document.querySelectorAll('input[type="range"]');
+    sliders.forEach(function(slider) {
+        slider.addEventListener('input', function() {
+            var value = this.value;
+            var id = this.id;
+            
+            // Update display
+            var spanId = '';
+            if (id === 'edu_p') spanId = 'val1';
+            else if (id === 'inf_p') spanId = 'val2';
+            else if (id === 'health_p') spanId = 'val3';
+            else if (id === 'san_p') spanId = 'val4';
+            
+            var span = document.getElementById(spanId);
+            if (span) span.textContent = value + '%';
+        });
+    });
+    
+    console.log('=== CivicSpend is NOW INTERACTIVE ===');
+    console.log('Try clicking: Dashboard, How It Works, Language dropdown, FAQ items');
+});
+
+// Provide fallback functions
+window.scrollToSection = window.scrollToSection || function(sectionId) {
+    var element = document.getElementById(sectionId);
+    if (element) {
+        element.scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+};
+
+window.openLoginModal = window.openLoginModal || function() {
+    document.getElementById('loginModal').style.display = 'block';
+};
+
+window.closeLoginModal = window.closeLoginModal || function() {
+    document.getElementById('loginModal').style.display = 'none';
+};
+
+console.log('Interactive functions ready!');
+</script>
 
 </body>
 </html>
+
 
