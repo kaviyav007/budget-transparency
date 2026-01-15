@@ -29,6 +29,12 @@
             scroll-behavior: smooth;
         }
 
+        /* Make ALL interactive elements clickable */
+        a, button, select, input[type="checkbox"], .accordion-header {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+        }
+
         /* MODALS */
         .login-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -241,12 +247,12 @@
 <nav>
     <div class="logo">🏙️ CivicSpend</div>
     <div class="nav-links">
-        <a href="#dashboard" onclick="scrollToSection('dashboard')">Dashboard</a>
-        <a href="#how-it-works" onclick="scrollToSection('how-it-works')">How It Works</a>
-        <a href="#vote" onclick="scrollToSection('vote')">Vote Priorities</a>
-        <a href="#projects" onclick="scrollToSection('projects')">Projects</a>
-        <a href="#admin" id="adminLink" style="display: none;" onclick="scrollToSection('vote')">Admin</a>
-        <select id="languageSelect" onchange="changeLanguage()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#vote">Vote Priorities</a>
+        <a href="#projects">Projects</a>
+        <a href="#admin" id="adminLink" style="display: none;">Admin</a>
+        <select id="languageSelect">
             <option value="en">English</option>
             <option value="ta">தமிழ் (Tamil)</option>
             <option value="hi">हिंदी (Hindi)</option>
@@ -257,208 +263,211 @@
     </div>
 </nav>
 
-<section class="hero">
-    <h1 id="heroTitle">Government Spending, <br><span style="color:var(--brand)">Decoded for You.</span></h1>
-    <p id="heroSubtitle">CivicSpend Pro bridges the gap between complex municipal ledgers and citizen understanding. Explore live data, track every rupee, and influence the city's future through decentralized feedback.</p>
-    <div class="cta-group">
-        <a href="#dashboard" class="btn btn-primary" onclick="scrollToSection('dashboard')">Enter Dashboard</a>
-        <a href="#how-it-works" class="btn" style="background: white; border: 1px solid #e2e8f0;" onclick="scrollToSection('how-it-works')">Learn More</a>
+<!-- DASHBOARD SECTION -->
+<section id="dashboard">
+    <div class="hero">
+        <h1 id="heroTitle">Government Spending, <br><span style="color:var(--brand)">Decoded for You.</span></h1>
+        <p id="heroSubtitle">CivicSpend Pro bridges the gap between complex municipal ledgers and citizen understanding. Explore live data, track every rupee, and influence the city's future through decentralized feedback.</p>
+        <div class="cta-group">
+            <a href="#dashboard" class="btn btn-primary">Enter Dashboard</a>
+            <a href="#how-it-works" class="btn" style="background: white; border: 1px solid #e2e8f0;">Learn More</a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- MAIN CONTENT -->
+        <main>
+            <!-- BUDGET CHART -->
+            <div class="card">
+                <div class="data-freshness" id="dataFreshness">Data synced 2h ago</div>
+                <span class="badge badge-blue">Live Expenditure Stream</span>
+                <h2 id="chartTitle">Current Resource Allocation</h2>
+                <p id="chartDesc" style="color: var(--slate-600); margin-bottom: 40px; line-height: 1.6;">
+                    This chart represents the <strong>validated treasury data</strong> for the fiscal year 2024-25. Data is pulled directly from the municipal accounting API and updated in real-time as warrants are issued.
+                </p>
+                <div id="main_chart" style="height: 550px; width: 100%;"></div>
+                
+                <!-- YEAR-OVER-YEAR COMPARISON -->
+                <div style="margin-top: 40px;">
+                    <h4 id="yearCompareTitle">Year-over-Year Comparison</h4>
+                    <div id="year_comparison_chart" style="height: 300px; width: 100%; margin-top: 20px;"></div>
+                </div>
+                
+                <!-- BUDGET VS ACTUAL -->
+                <div style="margin-top: 40px;">
+                    <h4 id="budgetActualTitle">Budget vs Actual Spending</h4>
+                    <div id="budget_actual_chart" style="height: 300px; width: 100%; margin-top: 20px;"></div>
+                </div>
+
+                <div class="download-btns">
+                    <button onclick="downloadCSV()">📥 Download CSV</button>
+                    <button onclick="downloadJSON()">📥 Download JSON</button>
+                    <button onclick="downloadPDF()">📥 Download PDF Report</button>
+                </div>
+
+                <!-- SEARCHABLE LEDGER -->
+                <div class="search-container">
+                    <input type="text" class="search-input" id="ledgerSearch" placeholder="Search transactions (Roads, Contractor, Ward 5...)">
+                    <span class="search-icon">🔍</span>
+                </div>
+                <table class="ledger-table" id="ledgerTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Amount (₹)</th>
+                            <th>Ward</th>
+                            <th>Vendor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledgerBody"></tbody>
+                </table>
+            </div>
+
+            <!-- PUBLIC VOTE STATS -->
+            <div class="card" style="margin-top:40px;">
+                <span class="badge badge-orange">Public Sentiment</span>
+                <h3 id="publicStatsTitle">Live Voting Stats</h3>
+                <p id="publicStatsDesc" style="color: var(--slate-600); margin-top:0;">Aggregated stats only (no personal details).</p>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="publicTotalVotes">0</div>
+                        <div id="publicTotalVotesLabel">Total votes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="publicTodayVotes">0</div>
+                        <div id="publicTodayVotesLabel">Votes today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="publicAvgEducation">25%</div>
+                        <div id="publicAvgEducationLabel">Avg Education</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="publicAvgInfra">25%</div>
+                        <div id="publicAvgInfraLabel">Avg Infrastructure</div>
+                    </div>
+                </div>
+                <div class="vote-demographics">
+                    <div>
+                        <h5 id="publicAgeTitle">Age groups</h5>
+                        <div id="publicAgeChart" class="demographic-chart"></div>
+                    </div>
+                    <div>
+                        <h5 id="publicGenderTitle">Gender</h5>
+                        <div id="publicGenderChart" class="demographic-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- SIDEBAR -->
+        <aside>
+            <div class="card" id="vote">
+                <span class="badge badge-green">Citizen Input Portal</span>
+                <h3 id="voteTitle">Voice Your Priorities</h3>
+                
+                <div id="login_prompt" style="text-align: center;">
+                    <p id="loginPromptText" style="font-size: 0.9rem; color: var(--slate-600);">Verify your identity via SMS to vote.</p>
+                    <button class="btn btn-primary" onclick="openLoginModal()" style="width:100%; margin-top: 20px;">Login to Vote</button>
+                </div>
+
+                <div id="voting_controls" style="display: none;">
+                    <p id="user_welcome" style="font-size: 0.85rem; font-weight: 700; color: var(--brand); margin-bottom: 15px;"></p>
+                    
+                    <div style="background: var(--brand-soft); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        <h4 style="margin: 0 0 10px;">Your Profile</h4>
+                        <select id="genderSelect">
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <select id="ageGroupSelect">
+                            <option value="">Select Age Group</option>
+                            <option value="18-25">18-25</option>
+                            <option value="26-35">26-35</option>
+                            <option value="36-50">36-50</option>
+                            <option value="50+">50+</option>
+                        </select>
+                        <select id="wardSelect">
+                            <option value="">Select Your Ward</option>
+                            <option value="Ward 1">Ward 1</option>
+                            <option value="Ward 2">Ward 2</option>
+                            <option value="Ward 3">Ward 3</option>
+                            <option value="Ward 4">Ward 4</option>
+                            <option value="Ward 5">Ward 5</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group"><label id="eduLabel">Education <span id="val1">25%</span></label><input type="range" id="edu_p" value="25" min="0" max="100" oninput="updateSliderValue('val1', this.value)"></div>
+                    <div class="input-group"><label id="infLabel">Infrastructure <span id="val2">25%</span></label><input type="range" id="inf_p" value="25" min="0" max="100" oninput="updateSliderValue('val2', this.value)"></div>
+                    <div class="input-group"><label id="healthLabel">Healthcare <span id="val3">25%</span></label><input type="range" id="health_p" value="25" min="0" max="100" oninput="updateSliderValue('val3', this.value)"></div>
+                    <div class="input-group"><label id="sanLabel">Sanitation <span id="val4">25%</span></label><input type="range" id="san_p" value="25" min="0" max="100" oninput="updateSliderValue('val4', this.value)"></div>
+
+                    <textarea id="voteReason" placeholder="Why do you prioritize these areas? (Optional but recommended)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px; resize:vertical; min-height:80px;"></textarea>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <input type="checkbox" id="followUpdates" checked>
+                        <label for="followUpdates" style="font-size: 0.85rem; color: var(--slate-600);">Send me updates on budget decisions</label>
+                    </div>
+                    
+                    <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="sendFeedback()">Submit Priority Vote</button>
+                    
+                    <div id="totalDisplay" style="margin-top: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.9rem; text-align: center;">
+                        Total: <span id="totalPercent">100%</span>
+                    </div>
+                </div>
+
+                <div id="already_voted" style="display: none; text-align: center; padding: 20px;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
+                    <h4 id="votedTitle">Identity Verified</h4>
+                    <p id="votedSubtitle" style="font-size: 0.85rem; color: var(--slate-600);">Your vote is securely recorded against your phone number.</p>
+                    <button class="btn" style="width:100%; margin-top:10px; font-size: 0.75rem;" onclick="logout()">Sign Out</button>
+                </div>
+
+                <!-- ADMIN DASHBOARD -->
+                <div id="adminDashboard">
+                    <div class="admin-section">
+                        <h4>🛡️ Admin Dashboard</h4>
+                        <div class="stats-grid">
+                            <div class="stat-card"><div class="stat-number" id="totalVotes">0</div><div>Total Votes</div></div>
+                            <div class="stat-card"><div class="stat-number" id="todayVotes">0</div><div>Today's Votes</div></div>
+                            <div class="stat-card"><div class="stat-number" id="maleVotes">0</div><div>Male Voters</div></div>
+                            <div class="stat-card"><div class="stat-number" id="femaleVotes">0</div><div>Female Voters</div></div>
+                            <div class="stat-card"><div class="stat-number" id="ward1Votes">0</div><div>Ward 1 Votes</div></div>
+                            <div class="stat-card"><div class="stat-number" id="ward2Votes">0</div><div>Ward 2 Votes</div></div>
+                        </div>
+                        <div class="vote-demographics">
+                            <div><h5>Age Group Distribution</h5><div id="ageChart" class="demographic-chart"></div></div>
+                            <div><h5>Gender Distribution</h5><div id="genderChart" class="demographic-chart"></div></div>
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <h5>Recent Votes</h5>
+                            <div id="recentVotesList" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; background: #f8fafc; padding: 10px; border-radius: 8px;"></div>
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <h5>Average Priorities</h5>
+                            <div id="avgPriorities" style="background: #f8fafc; padding: 10px; border-radius: 8px; font-size: 0.85rem;">
+                                <div>Education: <span id="avgEdu">25%</span></div>
+                                <div>Infrastructure: <span id="avgInfra">25%</span></div>
+                                <div>Healthcare: <span id="avgHealth">25%</span></div>
+                                <div>Sanitation: <span id="avgSan">25%</span></div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" style="width:100%;" onclick="exportVoteData()">📊 Export Vote Data</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
     </div>
 </section>
 
-<div class="dashboard-container" id="dashboard">
-    <!-- MAIN CONTENT -->
-    <main>
-        <!-- BUDGET CHART -->
-        <div class="card">
-            <div class="data-freshness" id="dataFreshness">Data synced 2h ago</div>
-            <span class="badge badge-blue">Live Expenditure Stream</span>
-            <h2 id="chartTitle">Current Resource Allocation</h2>
-            <p id="chartDesc" style="color: var(--slate-600); margin-bottom: 40px; line-height: 1.6;">
-                This chart represents the <strong>validated treasury data</strong> for the fiscal year 2024-25. Data is pulled directly from the municipal accounting API and updated in real-time as warrants are issued.
-            </p>
-            <div id="main_chart" style="height: 550px; width: 100%;"></div>
-            
-            <!-- YEAR-OVER-YEAR COMPARISON -->
-            <div style="margin-top: 40px;">
-                <h4 id="yearCompareTitle">Year-over-Year Comparison</h4>
-                <div id="year_comparison_chart" style="height: 300px; width: 100%; margin-top: 20px;"></div>
-            </div>
-            
-            <!-- BUDGET VS ACTUAL -->
-            <div style="margin-top: 40px;">
-                <h4 id="budgetActualTitle">Budget vs Actual Spending</h4>
-                <div id="budget_actual_chart" style="height: 300px; width: 100%; margin-top: 20px;"></div>
-            </div>
-
-            <div class="download-btns">
-                <button onclick="downloadCSV()">📥 Download CSV</button>
-                <button onclick="downloadJSON()">📥 Download JSON</button>
-                <button onclick="downloadPDF()">📥 Download PDF Report</button>
-            </div>
-
-            <!-- SEARCHABLE LEDGER -->
-            <div class="search-container">
-                <input type="text" class="search-input" id="ledgerSearch" placeholder="Search transactions (Roads, Contractor, Ward 5...)">
-                <span class="search-icon">🔍</span>
-            </div>
-            <table class="ledger-table" id="ledgerTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Category</th>
-                        <th>Description</th>
-                        <th>Amount (₹)</th>
-                        <th>Ward</th>
-                        <th>Vendor</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="ledgerBody"></tbody>
-            </table>
-        </div>
-
-        <!-- PUBLIC VOTE STATS -->
-        <div class="card" style="margin-top:40px;">
-            <span class="badge badge-orange">Public Sentiment</span>
-            <h3 id="publicStatsTitle">Live Voting Stats</h3>
-            <p id="publicStatsDesc" style="color: var(--slate-600); margin-top:0;">Aggregated stats only (no personal details).</p>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="publicTotalVotes">0</div>
-                    <div id="publicTotalVotesLabel">Total votes</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="publicTodayVotes">0</div>
-                    <div id="publicTodayVotesLabel">Votes today</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="publicAvgEducation">25%</div>
-                    <div id="publicAvgEducationLabel">Avg Education</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="publicAvgInfra">25%</div>
-                    <div id="publicAvgInfraLabel">Avg Infrastructure</div>
-                </div>
-            </div>
-            <div class="vote-demographics">
-                <div>
-                    <h5 id="publicAgeTitle">Age groups</h5>
-                    <div id="publicAgeChart" class="demographic-chart"></div>
-                </div>
-                <div>
-                    <h5 id="publicGenderTitle">Gender</h5>
-                    <div id="publicGenderChart" class="demographic-chart"></div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- SIDEBAR -->
-    <aside id="vote">
-        <div class="card" id="vote_card">
-            <span class="badge badge-green">Citizen Input Portal</span>
-            <h3 id="voteTitle">Voice Your Priorities</h3>
-            
-            <div id="login_prompt" style="text-align: center;">
-                <p id="loginPromptText" style="font-size: 0.9rem; color: var(--slate-600);">Verify your identity via SMS to vote.</p>
-                <button class="btn btn-primary" onclick="openLoginModal()" style="width:100%; margin-top: 20px;">Login to Vote</button>
-            </div>
-
-            <div id="voting_controls" style="display: none;">
-                <p id="user_welcome" style="font-size: 0.85rem; font-weight: 700; color: var(--brand); margin-bottom: 15px;"></p>
-                
-                <div style="background: var(--brand-soft); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                    <h4 style="margin: 0 0 10px;">Your Profile</h4>
-                    <select id="genderSelect">
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                    </select>
-                    <select id="ageGroupSelect">
-                        <option value="">Select Age Group</option>
-                        <option value="18-25">18-25</option>
-                        <option value="26-35">26-35</option>
-                        <option value="36-50">36-50</option>
-                        <option value="50+">50+</option>
-                    </select>
-                    <select id="wardSelect">
-                        <option value="">Select Your Ward</option>
-                        <option value="Ward 1">Ward 1</option>
-                        <option value="Ward 2">Ward 2</option>
-                        <option value="Ward 3">Ward 3</option>
-                        <option value="Ward 4">Ward 4</option>
-                        <option value="Ward 5">Ward 5</option>
-                    </select>
-                </div>
-
-                <div class="input-group"><label id="eduLabel">Education <span id="val1">25%</span></label><input type="range" id="edu_p" value="25" min="0" max="100" oninput="updateSliderValue('val1', this.value)"></div>
-                <div class="input-group"><label id="infLabel">Infrastructure <span id="val2">25%</span></label><input type="range" id="inf_p" value="25" min="0" max="100" oninput="updateSliderValue('val2', this.value)"></div>
-                <div class="input-group"><label id="healthLabel">Healthcare <span id="val3">25%</span></label><input type="range" id="health_p" value="25" min="0" max="100" oninput="updateSliderValue('val3', this.value)"></div>
-                <div class="input-group"><label id="sanLabel">Sanitation <span id="val4">25%</span></label><input type="range" id="san_p" value="25" min="0" max="100" oninput="updateSliderValue('val4', this.value)"></div>
-
-                <textarea id="voteReason" placeholder="Why do you prioritize these areas? (Optional but recommended)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px; resize:vertical; min-height:80px;"></textarea>
-                
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <input type="checkbox" id="followUpdates" checked>
-                    <label for="followUpdates" style="font-size: 0.85rem; color: var(--slate-600);">Send me updates on budget decisions</label>
-                </div>
-                
-                <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="sendFeedback()">Submit Priority Vote</button>
-                
-                <div id="totalDisplay" style="margin-top: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.9rem; text-align: center;">
-                    Total: <span id="totalPercent">100%</span>
-                </div>
-            </div>
-
-            <div id="already_voted" style="display: none; text-align: center; padding: 20px;">
-                <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
-                <h4 id="votedTitle">Identity Verified</h4>
-                <p id="votedSubtitle" style="font-size: 0.85rem; color: var(--slate-600);">Your vote is securely recorded against your phone number.</p>
-                <button class="btn" style="width:100%; margin-top:10px; font-size: 0.75rem;" onclick="logout()">Sign Out</button>
-            </div>
-
-            <!-- ADMIN DASHBOARD -->
-            <div id="adminDashboard">
-                <div class="admin-section">
-                    <h4>🛡️ Admin Dashboard</h4>
-                    <div class="stats-grid">
-                        <div class="stat-card"><div class="stat-number" id="totalVotes">0</div><div>Total Votes</div></div>
-                        <div class="stat-card"><div class="stat-number" id="todayVotes">0</div><div>Today's Votes</div></div>
-                        <div class="stat-card"><div class="stat-number" id="maleVotes">0</div><div>Male Voters</div></div>
-                        <div class="stat-card"><div class="stat-number" id="femaleVotes">0</div><div>Female Voters</div></div>
-                        <div class="stat-card"><div class="stat-number" id="ward1Votes">0</div><div>Ward 1 Votes</div></div>
-                        <div class="stat-card"><div class="stat-number" id="ward2Votes">0</div><div>Ward 2 Votes</div></div>
-                    </div>
-                    <div class="vote-demographics">
-                        <div><h5>Age Group Distribution</h5><div id="ageChart" class="demographic-chart"></div></div>
-                        <div><h5>Gender Distribution</h5><div id="genderChart" class="demographic-chart"></div></div>
-                    </div>
-                    <div style="margin-top: 20px;">
-                        <h5>Recent Votes</h5>
-                        <div id="recentVotesList" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; background: #f8fafc; padding: 10px; border-radius: 8px;"></div>
-                    </div>
-                    <div style="margin-top: 20px;">
-                        <h5>Average Priorities</h5>
-                        <div id="avgPriorities" style="background: #f8fafc; padding: 10px; border-radius: 8px; font-size: 0.85rem;">
-                            <div>Education: <span id="avgEdu">25%</span></div>
-                            <div>Infrastructure: <span id="avgInfra">25%</span></div>
-                            <div>Healthcare: <span id="avgHealth">25%</span></div>
-                            <div>Sanitation: <span id="avgSan">25%</span></div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 20px;">
-                        <button class="btn btn-primary" style="width:100%;" onclick="exportVoteData()">📊 Export Vote Data</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </aside>
-</div>
-
-<!-- PROJECTS MAP -->
-<section class="news-section" id="projects">
+<!-- PROJECTS SECTION -->
+<section id="projects" class="news-section">
     <div class="section-title">
         <span class="badge badge-blue">Real World Impact</span>
         <h2 id="projectsTitle">Infrastructure Projects Map</h2>
@@ -491,8 +500,8 @@
     </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="how-it-works" id="how-it-works">
+<!-- HOW IT WORKS SECTION -->
+<section id="how-it-works" class="how-it-works">
     <div class="section-title">
         <span class="badge badge-blue">Process Transparency</span>
         <h2 id="howTitle">How CivicSpend Works</h2>
@@ -516,7 +525,7 @@
     </div>
 </section>
 
-<!-- FAQ -->
+<!-- FAQ SECTION -->
 <section class="faq-section">
     <div class="section-title">
         <span class="badge badge-blue">Resources</span>
@@ -524,27 +533,27 @@
     </div>
     <div class="accordion">
         <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq1">Where does this data come from?</span> <span>+</span></div>
+            <div class="accordion-header"><span id="faq1">Where does this data come from?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq1a">Our data is fetched from the Open Data portal of the Municipal Corporation. It is updated once the quarterly audits are finalized.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq2">How secure is my vote?</span> <span>+</span></div>
+            <div class="accordion-header"><span id="faq2">How secure is my vote?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq2a">Votes are cryptographically signed and stored against your verified phone number. No personal data is shown publicly.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq3">Can I change my vote?</span> <span>+</span></div>
+            <div class="accordion-header"><span id="faq3">Can I change my vote?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq3a">One vote per verified number per budget cycle. Contact support@civicspend.gov for special circumstances.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq4">Is this official government site?</span> <span>+</span></div>
+            <div class="accordion-header"><span id="faq4">Is this official government site?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq4a">CivicSpend Pro is a civic-tech initiative approved by the City Finance Department for transparency.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq5">How often is data updated?</span> <span>+</span></div>
+            <div class="accordion-header"><span id="faq5">How often is data updated?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq5a">Financial data is updated every 24 hours. Project status updates are real-time as reported by field officers.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq6">Who can see my vote?</span> <span>+</span></div>
+            <div class="accordion-header"><span id="faq6">Who can see my vote?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq6a">Only aggregated anonymous statistics are shown publicly. Individual votes are visible only to authorized administrators for analysis.</span></div>
         </div>
     </div>
@@ -596,10 +605,10 @@
         <div>
             <h4>Quick Links</h4>
             <ul>
-                <li><a href="#dashboard" onclick="scrollToSection('dashboard')">Dashboard</a></li>
-                <li><a href="#vote" onclick="scrollToSection('vote')">Vote Now</a></li>
-                <li><a href="#projects" onclick="scrollToSection('projects')">Project Map</a></li>
-                <li><a href="#how-it-works" onclick="scrollToSection('how-it-works')">How It Works</a></li>
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="#vote">Vote Now</a></li>
+                <li><a href="#projects">Project Map</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
             </ul>
         </div>
     </div>
@@ -609,6 +618,8 @@
 </footer>
 
 <script>
+    // ========== SIMPLE FIXED NAVIGATION ==========
+    
     // Global variables
     let currentUser = null;
     let isAdmin = false;
@@ -617,42 +628,52 @@
     let map = null;
     let sliders = {};
 
-    // FIX: SCROLL TO SECTION FUNCTION (Fixed navigation)
-    function scrollToSection(sectionId) {
-        // Prevent default behavior
-        event.preventDefault();
-        
-        const element = document.getElementById(sectionId);
-        if (element) {
-            const offset = 80; // Account for sticky header
-            const elementPosition = element.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.pageYOffset - offset;
-            
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: 'smooth'
-            });
-        }
-    }
-
-    // FIX: NAVIGATION LINKS CLICK HANDLERS
+    // SIMPLE SCROLLING FIX - Works 100%
     document.addEventListener('DOMContentLoaded', function() {
-        // Add click handlers to all navigation links
-        const navLinks = document.querySelectorAll('.nav-links a, .footer-grid a, .cta-group a');
-        navLinks.forEach(link => {
-            if (link.getAttribute('href') && link.getAttribute('href').startsWith('#')) {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const href = this.getAttribute('href');
-                    if (href === '#admin' && isAdmin) {
-                        scrollToSection('vote');
-                    } else if (href !== '#admin') {
-                        const sectionId = href.substring(1); // Remove #
-                        scrollToSection(sectionId);
-                    }
-                });
-            }
+        console.log('Setting up navigation...');
+        
+        // 1. Fix ALL navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                const sectionId = href.substring(1);
+                
+                console.log('Clicked:', sectionId);
+                
+                // Handle admin link
+                if (sectionId === 'admin' && isAdmin) {
+                    document.getElementById('adminDashboard').style.display = 'block';
+                    document.getElementById('vote').scrollIntoView({behavior: 'smooth'});
+                    return;
+                }
+                
+                // Find and scroll to section
+                const target = document.getElementById(sectionId);
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
         });
+        
+        // 2. Fix language selector
+        document.getElementById('languageSelect').addEventListener('change', function() {
+            changeLanguage();
+        });
+        
+        // 3. Fix accordion
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                content.classList.toggle('active');
+                this.lastElementChild.textContent = content.classList.contains('active') ? '−' : '+';
+            });
+        });
+        
+        console.log('Navigation ready!');
     });
 
     // ENTRY MODAL HANDLING
@@ -1381,12 +1402,6 @@
     }
     
     // UTILITY FUNCTIONS
-    window.toggleAccordion = function(header) {
-        const content = header.nextElementSibling;
-        content.classList.toggle('active');
-        header.lastElementChild.textContent = content.classList.contains('active') ? '−' : '+';
-    };
-    
     window.downloadCSV = function() {
         const csv = 'Date,Category,Description,Amount,Ward,Vendor,Status\n' +
                    '2026-01-14,Education,Smart School Project,25000000,Ward 5,ABC Constructions,Completed\n' +
@@ -1690,6 +1705,8 @@
                 });
             });
         }
+        
+        console.log('CivicSpend Pro fully loaded!');
     });
     
     function updateDataFreshness() {
@@ -1697,119 +1714,7 @@
         const element = document.getElementById('dataFreshness');
         if (element) element.textContent = `Data synced ${hours}h ago`;
     }
-    // ====== COMPLETE FIX FOR NAVIGATION ======
-
-// 1. Fix scrolling function
-function scrollToSectionFixed(sectionId, event) {
-    if (event) event.preventDefault();
-    
-    console.log('Attempting to scroll to:', sectionId);
-    
-    // Handle admin link specially
-    if (sectionId === 'admin') {
-        if (!isAdmin) return;
-        sectionId = 'vote';
-    }
-    
-    const element = document.getElementById(sectionId);
-    if (element) {
-        const offset = 80;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset - offset;
-        
-        window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-        });
-    }
-}
-
-// 2. Fix all navigation links
-function fixAllNavigation() {
-    // Fix main navigation
-    const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
-            const sectionId = href.substring(1);
-            scrollToSectionFixed(sectionId, e);
-        });
-    });
-    
-    // Fix footer links
-    const footerLinks = document.querySelectorAll('.footer-grid a[href^="#"]');
-    footerLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
-            const sectionId = href.substring(1);
-            scrollToSectionFixed(sectionId, e);
-        });
-    });
-    
-    // Fix CTA buttons
-    const ctaLinks = document.querySelectorAll('.cta-group a[href^="#"]');
-    ctaLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
-            const sectionId = href.substring(1);
-            scrollToSectionFixed(sectionId, e);
-        });
-    });
-    
-    // Fix language selector
-    const langSelect = document.getElementById('languageSelect');
-    if (langSelect) {
-        langSelect.addEventListener('change', function() {
-            changeLanguage();
-        });
-    }
-}
-
-// 3. Ensure cursor changes on hover
-document.addEventListener('DOMContentLoaded', function() {
-    // Force pointer cursor on all interactive elements
-    const interactiveElements = [
-        '.nav-links a',
-        '.footer-grid a',
-        '.cta-group a',
-        'button',
-        'select',
-        '.accordion-header',
-        '.download-btns button',
-        'input[type="checkbox"]',
-        'textarea',
-        'input[type="text"]',
-        'input[type="email"]',
-        'input[type="password"]',
-        'input[type="tel"]'
-    ];
-    
-    interactiveElements.forEach(selector => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(el => {
-            el.style.cursor = 'pointer';
-            el.style.pointerEvents = 'auto';
-        });
-    });
-    
-    // Initialize navigation fixes
-    fixAllNavigation();
-    
-    // Ensure language dropdown works
-    const languageSelect = document.getElementById('languageSelect');
-    if (languageSelect) {
-        languageSelect.onchange = function() {
-            changeLanguage();
-        };
-    }
-});
-
-// 4. Override the original scrolling function
-window.scrollToSection = function(sectionId) {
-    return scrollToSectionFixed(sectionId);
-};
 </script>
 
 </body>
 </html>
-
