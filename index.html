@@ -29,12 +29,6 @@
             scroll-behavior: smooth;
         }
 
-        /* Make ALL interactive elements clickable */
-        a, button, select, input[type="checkbox"], .accordion-header {
-            cursor: pointer !important;
-            pointer-events: auto !important;
-        }
-
         /* MODALS */
         .login-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -75,13 +69,13 @@
             position: sticky; top: 0; z-index: 1000;
         }
         .logo { font-weight: 800; font-size: 1.4rem; color: var(--brand); letter-spacing: -0.5px; }
-        .nav-links { display: flex; align-items: center; gap: 15px; }
+        .nav-links { display: flex; align-items: center; }
         .nav-links a { 
             text-decoration: none; color: var(--slate-600); font-weight: 600; 
-            font-size: 0.9rem; transition: 0.2s; cursor: pointer;
-            padding: 8px 12px; border-radius: 6px;
+            font-size: 0.9rem; margin-left: 24px; transition: 0.2s; 
+            cursor: pointer;
         }
-        .nav-links a:hover { color: var(--brand); background: var(--brand-soft); }
+        .nav-links a:hover { color: var(--brand); }
         .user-status { font-weight: 600; color: var(--brand); }
         .admin-badge { background: #fef3c7; color: var(--warning); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
 
@@ -175,14 +169,13 @@
             .dashboard-container { grid-template-columns: 1fr; } 
             .hero h1 { font-size: 2.8rem; }
             .vote-demographics { grid-template-columns: 1fr; }
-            .nav-links { flex-wrap: wrap; gap: 10px; }
+            .nav-links { flex-wrap: wrap; }
         }
         footer { background: var(--slate-900); color: white; padding: 80px 10%; margin-top: 0; }
         .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 50px; }
         .footer-bottom { border-top: 1px solid #334155; margin-top: 60px; padding-top: 30px; font-size: 0.85rem; color: #94a3b8; text-align: center; }
     </style>
 </head>
-    <script src="github-fix.js"></script>
 <body>
 
 <!-- ENTRY MODAL - FIRST LOAD BLOCKER -->
@@ -248,12 +241,12 @@
 <nav>
     <div class="logo">🏙️ CivicSpend</div>
     <div class="nav-links">
-        <a href="#dashboard">Dashboard</a>
-        <a href="#how-it-works">How It Works</a>
-        <a href="#vote">Vote Priorities</a>
-        <a href="#projects">Projects</a>
-        <a href="#admin" id="adminLink" style="display: none;">Admin</a>
-        <select id="languageSelect">
+        <a onclick="scrollToSection('dashboard')">Dashboard</a>
+        <a onclick="scrollToSection('how-it-works')">How It Works</a>
+        <a onclick="scrollToSection('vote')">Vote Priorities</a>
+        <a onclick="scrollToSection('projects')">Projects</a>
+        <a href="#admin" id="adminLink" style="display: none;" onclick="showAdminSection()">Admin</a>
+        <select id="languageSelect" onchange="changeLanguage()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">
             <option value="en">English</option>
             <option value="ta">தமிழ் (Tamil)</option>
             <option value="hi">हिंदी (Hindi)</option>
@@ -264,211 +257,204 @@
     </div>
 </nav>
 
-<!-- DASHBOARD SECTION -->
-<section id="dashboard">
-    <div class="hero">
-        <h1 id="heroTitle">Government Spending, <br><span style="color:var(--brand)">Decoded for You.</span></h1>
-        <p id="heroSubtitle">CivicSpend Pro bridges the gap between complex municipal ledgers and citizen understanding. Explore live data, track every rupee, and influence the city's future through decentralized feedback.</p>
-        <div class="cta-group">
-            <a href="#dashboard" class="btn btn-primary">Enter Dashboard</a>
-            <a href="#how-it-works" class="btn" style="background: white; border: 1px solid #e2e8f0;">Learn More</a>
-        </div>
-    </div>
-
-    <div class="dashboard-container">
-        <!-- MAIN CONTENT -->
-        <main>
-            <!-- BUDGET CHART -->
-            <div class="card">
-                <div class="data-freshness" id="dataFreshness">Data synced 2h ago</div>
-                <span class="badge badge-blue">Live Expenditure Stream</span>
-                <h2 id="chartTitle">Current Resource Allocation</h2>
-                <p id="chartDesc" style="color: var(--slate-600); margin-bottom: 40px; line-height: 1.6;">
-                    This chart represents the <strong>validated treasury data</strong> for the fiscal year 2024-25. Data is pulled directly from the municipal accounting API and updated in real-time as warrants are issued.
-                </p>
-                <div id="main_chart" style="height: 550px; width: 100%;"></div>
-                
-                <!-- YEAR-OVER-YEAR COMPARISON -->
-                <div style="margin-top: 40px;">
-                    <h4 id="yearCompareTitle">Year-over-Year Comparison</h4>
-                    <div id="year_comparison_chart" style="height: 300px; width: 100%; margin-top: 20px;"></div>
-                </div>
-                
-                <!-- BUDGET VS ACTUAL -->
-                <div style="margin-top: 40px;">
-                    <h4 id="budgetActualTitle">Budget vs Actual Spending</h4>
-                    <div id="budget_actual_chart" style="height: 300px; width: 100%; margin-top: 20px;"></div>
-                </div>
-
-                <div class="download-btns">
-                    <button onclick="downloadCSV()">📥 Download CSV</button>
-                    <button onclick="downloadJSON()">📥 Download JSON</button>
-                    <button onclick="downloadPDF()">📥 Download PDF Report</button>
-                </div>
-
-                <!-- SEARCHABLE LEDGER -->
-                <div class="search-container">
-                    <input type="text" class="search-input" id="ledgerSearch" placeholder="Search transactions (Roads, Contractor, Ward 5...)">
-                    <span class="search-icon">🔍</span>
-                </div>
-                <table class="ledger-table" id="ledgerTable">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Category</th>
-                            <th>Description</th>
-                            <th>Amount (₹)</th>
-                            <th>Ward</th>
-                            <th>Vendor</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ledgerBody"></tbody>
-                </table>
-            </div>
-
-            <!-- PUBLIC VOTE STATS -->
-            <div class="card" style="margin-top:40px;">
-                <span class="badge badge-orange">Public Sentiment</span>
-                <h3 id="publicStatsTitle">Live Voting Stats</h3>
-                <p id="publicStatsDesc" style="color: var(--slate-600); margin-top:0;">Aggregated stats only (no personal details).</p>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number" id="publicTotalVotes">0</div>
-                        <div id="publicTotalVotesLabel">Total votes</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="publicTodayVotes">0</div>
-                        <div id="publicTodayVotesLabel">Votes today</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="publicAvgEducation">25%</div>
-                        <div id="publicAvgEducationLabel">Avg Education</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="publicAvgInfra">25%</div>
-                        <div id="publicAvgInfraLabel">Avg Infrastructure</div>
-                    </div>
-                </div>
-                <div class="vote-demographics">
-                    <div>
-                        <h5 id="publicAgeTitle">Age groups</h5>
-                        <div id="publicAgeChart" class="demographic-chart"></div>
-                    </div>
-                    <div>
-                        <h5 id="publicGenderTitle">Gender</h5>
-                        <div id="publicGenderChart" class="demographic-chart"></div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- SIDEBAR -->
-        <aside>
-            <div class="card" id="vote">
-                <span class="badge badge-green">Citizen Input Portal</span>
-                <h3 id="voteTitle">Voice Your Priorities</h3>
-                
-                <div id="login_prompt" style="text-align: center;">
-                    <p id="loginPromptText" style="font-size: 0.9rem; color: var(--slate-600);">Verify your identity via SMS to vote.</p>
-                    <button class="btn btn-primary" onclick="openLoginModal()" style="width:100%; margin-top: 20px;">Login to Vote</button>
-                </div>
-
-                <div id="voting_controls" style="display: none;">
-                    <p id="user_welcome" style="font-size: 0.85rem; font-weight: 700; color: var(--brand); margin-bottom: 15px;"></p>
-                    
-                    <div style="background: var(--brand-soft); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                        <h4 style="margin: 0 0 10px;">Your Profile</h4>
-                        <select id="genderSelect">
-                            <option value="">Select Gender</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
-                        </select>
-                        <select id="ageGroupSelect">
-                            <option value="">Select Age Group</option>
-                            <option value="18-25">18-25</option>
-                            <option value="26-35">26-35</option>
-                            <option value="36-50">36-50</option>
-                            <option value="50+">50+</option>
-                        </select>
-                        <select id="wardSelect">
-                            <option value="">Select Your Ward</option>
-                            <option value="Ward 1">Ward 1</option>
-                            <option value="Ward 2">Ward 2</option>
-                            <option value="Ward 3">Ward 3</option>
-                            <option value="Ward 4">Ward 4</option>
-                            <option value="Ward 5">Ward 5</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group"><label id="eduLabel">Education <span id="val1">25%</span></label><input type="range" id="edu_p" value="25" min="0" max="100" oninput="updateSliderValue('val1', this.value)"></div>
-                    <div class="input-group"><label id="infLabel">Infrastructure <span id="val2">25%</span></label><input type="range" id="inf_p" value="25" min="0" max="100" oninput="updateSliderValue('val2', this.value)"></div>
-                    <div class="input-group"><label id="healthLabel">Healthcare <span id="val3">25%</span></label><input type="range" id="health_p" value="25" min="0" max="100" oninput="updateSliderValue('val3', this.value)"></div>
-                    <div class="input-group"><label id="sanLabel">Sanitation <span id="val4">25%</span></label><input type="range" id="san_p" value="25" min="0" max="100" oninput="updateSliderValue('val4', this.value)"></div>
-
-                    <textarea id="voteReason" placeholder="Why do you prioritize these areas? (Optional but recommended)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px; resize:vertical; min-height:80px;"></textarea>
-                    
-                    <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <input type="checkbox" id="followUpdates" checked>
-                        <label for="followUpdates" style="font-size: 0.85rem; color: var(--slate-600);">Send me updates on budget decisions</label>
-                    </div>
-                    
-                    <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="sendFeedback()">Submit Priority Vote</button>
-                    
-                    <div id="totalDisplay" style="margin-top: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.9rem; text-align: center;">
-                        Total: <span id="totalPercent">100%</span>
-                    </div>
-                </div>
-
-                <div id="already_voted" style="display: none; text-align: center; padding: 20px;">
-                    <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
-                    <h4 id="votedTitle">Identity Verified</h4>
-                    <p id="votedSubtitle" style="font-size: 0.85rem; color: var(--slate-600);">Your vote is securely recorded against your phone number.</p>
-                    <button class="btn" style="width:100%; margin-top:10px; font-size: 0.75rem;" onclick="logout()">Sign Out</button>
-                </div>
-
-                <!-- ADMIN DASHBOARD -->
-                <div id="adminDashboard">
-                    <div class="admin-section">
-                        <h4>🛡️ Admin Dashboard</h4>
-                        <div class="stats-grid">
-                            <div class="stat-card"><div class="stat-number" id="totalVotes">0</div><div>Total Votes</div></div>
-                            <div class="stat-card"><div class="stat-number" id="todayVotes">0</div><div>Today's Votes</div></div>
-                            <div class="stat-card"><div class="stat-number" id="maleVotes">0</div><div>Male Voters</div></div>
-                            <div class="stat-card"><div class="stat-number" id="femaleVotes">0</div><div>Female Voters</div></div>
-                            <div class="stat-card"><div class="stat-number" id="ward1Votes">0</div><div>Ward 1 Votes</div></div>
-                            <div class="stat-card"><div class="stat-number" id="ward2Votes">0</div><div>Ward 2 Votes</div></div>
-                        </div>
-                        <div class="vote-demographics">
-                            <div><h5>Age Group Distribution</h5><div id="ageChart" class="demographic-chart"></div></div>
-                            <div><h5>Gender Distribution</h5><div id="genderChart" class="demographic-chart"></div></div>
-                        </div>
-                        <div style="margin-top: 20px;">
-                            <h5>Recent Votes</h5>
-                            <div id="recentVotesList" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; background: #f8fafc; padding: 10px; border-radius: 8px;"></div>
-                        </div>
-                        <div style="margin-top: 20px;">
-                            <h5>Average Priorities</h5>
-                            <div id="avgPriorities" style="background: #f8fafc; padding: 10px; border-radius: 8px; font-size: 0.85rem;">
-                                <div>Education: <span id="avgEdu">25%</span></div>
-                                <div>Infrastructure: <span id="avgInfra">25%</span></div>
-                                <div>Healthcare: <span id="avgHealth">25%</span></div>
-                                <div>Sanitation: <span id="avgSan">25%</span></div>
-                            </div>
-                        </div>
-                        <div style="margin-top: 20px;">
-                            <button class="btn btn-primary" style="width:100%;" onclick="exportVoteData()">📊 Export Vote Data</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
+<section class="hero">
+    <h1 id="heroTitle">Government Spending, <br><span style="color:var(--brand)">Decoded for You.</span></h1>
+    <p id="heroSubtitle">CivicSpend Pro bridges the gap between complex municipal ledgers and citizen understanding. Explore live data, track every rupee, and influence the city's future through decentralized feedback.</p>
+    <div class="cta-group">
+        <a onclick="scrollToSection('dashboard')" class="btn btn-primary">Enter Dashboard</a>
+        <a onclick="scrollToSection('how-it-works')" class="btn" style="background: white; border: 1px solid #e2e8f0;">Learn More</a>
     </div>
 </section>
 
-<!-- PROJECTS SECTION -->
-<section id="projects" class="news-section">
+<div class="dashboard-container" id="dashboard">
+    <!-- MAIN CONTENT -->
+    <main>
+        <!-- BUDGET CHART -->
+        <div class="card">
+            <div class="data-freshness" id="dataFreshness">Data synced 2h ago</div>
+            <span class="badge badge-blue">Live Expenditure Stream</span>
+            <h2 id="chartTitle">Current Resource Allocation</h2>
+            <p id="chartDesc" style="color: var(--slate-600); margin-bottom: 40px; line-height: 1.6;">
+                This chart represents the <strong>validated treasury data</strong> for the fiscal year 2024-25. Data is pulled directly from the municipal accounting API and updated in real-time as warrants are issued.
+            </p>
+            <div id="main_chart" style="height: 550px; width: 100%;"></div>
+            
+            <!-- YEAR-OVER-YEAR COMPARISON -->
+            <div style="margin-top: 40px;">
+                <h4 id="yearCompareTitle">Year-over-Year Comparison</h4>
+                <div id="year_comparison_chart" style="height: 300px; width: 100%; margin-top: 20px;"></div>
+            </div>
+            
+            <!-- BUDGET VS ACTUAL -->
+            <div style="margin-top: 40px;">
+                <h4 id="budgetActualTitle">Budget vs Actual Spending</h4>
+                <div id="budget_actual_chart" style="height: 300px; width: 100%; margin-top: 20px;"></div>
+            </div>
+
+            <div class="download-btns">
+                <button onclick="downloadCSV()">📥 Download CSV</button>
+                <button onclick="downloadJSON()">📥 Download JSON</button>
+                <button onclick="downloadPDF()">📥 Download PDF Report</button>
+            </div>
+
+            <!-- SEARCHABLE LEDGER -->
+            <div class="search-container">
+                <input type="text" class="search-input" id="ledgerSearch" placeholder="Search transactions (Roads, Contractor, Ward 5...)">
+                <span class="search-icon">🔍</span>
+            </div>
+            <table class="ledger-table" id="ledgerTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Amount (₹)</th>
+                        <th>Ward</th>
+                        <th>Vendor</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="ledgerBody"></tbody>
+            </table>
+        </div>
+
+        <!-- PUBLIC VOTE STATS -->
+        <div class="card" style="margin-top:40px;">
+            <span class="badge badge-orange">Public Sentiment</span>
+            <h3 id="publicStatsTitle">Live Voting Stats</h3>
+            <p id="publicStatsDesc" style="color: var(--slate-600); margin-top:0;">Aggregated stats only (no personal details).</p>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="publicTotalVotes">0</div>
+                    <div id="publicTotalVotesLabel">Total votes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="publicTodayVotes">0</div>
+                    <div id="publicTodayVotesLabel">Votes today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="publicAvgEducation">25%</div>
+                    <div id="publicAvgEducationLabel">Avg Education</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="publicAvgInfra">25%</div>
+                    <div id="publicAvgInfraLabel">Avg Infrastructure</div>
+                </div>
+            </div>
+            <div class="vote-demographics">
+                <div>
+                    <h5 id="publicAgeTitle">Age groups</h5>
+                    <div id="publicAgeChart" class="demographic-chart"></div>
+                </div>
+                <div>
+                    <h5 id="publicGenderTitle">Gender</h5>
+                    <div id="publicGenderChart" class="demographic-chart"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- SIDEBAR -->
+    <aside id="vote">
+        <div class="card" id="vote_card">
+            <span class="badge badge-green">Citizen Input Portal</span>
+            <h3 id="voteTitle">Voice Your Priorities</h3>
+            
+            <div id="login_prompt" style="text-align: center;">
+                <p id="loginPromptText" style="font-size: 0.9rem; color: var(--slate-600);">Verify your identity via SMS to vote.</p>
+                <button class="btn btn-primary" onclick="openLoginModal()" style="width:100%; margin-top: 20px;">Login to Vote</button>
+            </div>
+
+            <div id="voting_controls" style="display: none;">
+                <p id="user_welcome" style="font-size: 0.85rem; font-weight: 700; color: var(--brand); margin-bottom: 15px;"></p>
+                
+                <div style="background: var(--brand-soft); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 10px;">Your Profile</h4>
+                    <select id="genderSelect">
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <select id="ageGroupSelect">
+                        <option value="">Select Age Group</option>
+                        <option value="18-25">18-25</option>
+                        <option value="26-35">26-35</option>
+                        <option value="36-50">36-50</option>
+                        <option value="50+">50+</option>
+                    </select>
+                    <select id="wardSelect">
+                        <option value="">Select Your Ward</option>
+                        <option value="Ward 1">Ward 1</option>
+                        <option value="Ward 2">Ward 2</option>
+                        <option value="Ward 3">Ward 3</option>
+                        <option value="Ward 4">Ward 4</option>
+                        <option value="Ward 5">Ward 5</option>
+                    </select>
+                </div>
+
+                <div class="input-group"><label id="eduLabel">Education <span id="val1">25%</span></label><input type="range" id="edu_p" value="25" min="0" max="100" oninput="updateSlider('val1', this.value)"></div>
+                <div class="input-group"><label id="infLabel">Infrastructure <span id="val2">25%</span></label><input type="range" id="inf_p" value="25" min="0" max="100" oninput="updateSlider('val2', this.value)"></div>
+                <div class="input-group"><label id="healthLabel">Healthcare <span id="val3">25%</span></label><input type="range" id="health_p" value="25" min="0" max="100" oninput="updateSlider('val3', this.value)"></div>
+                <div class="input-group"><label id="sanLabel">Sanitation <span id="val4">25%</span></label><input type="range" id="san_p" value="25" min="0" max="100" oninput="updateSlider('val4', this.value)"></div>
+
+                <textarea id="voteReason" placeholder="Why do you prioritize these areas? (Optional but recommended)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px; resize:vertical; min-height:80px;"></textarea>
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="checkbox" id="followUpdates" checked>
+                    <label for="followUpdates" style="font-size: 0.85rem; color: var(--slate-600);">Send me updates on budget decisions</label>
+                </div>
+                
+                <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="sendFeedback()">Submit Priority Vote</button>
+            </div>
+
+            <div id="already_voted" style="display: none; text-align: center; padding: 20px;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
+                <h4 id="votedTitle">Identity Verified</h4>
+                <p id="votedSubtitle" style="font-size: 0.85rem; color: var(--slate-600);">Your vote is securely recorded against your phone number.</p>
+                <button class="btn" style="width:100%; margin-top:10px; font-size: 0.75rem;" onclick="logout()">Sign Out</button>
+            </div>
+
+            <!-- ADMIN DASHBOARD -->
+            <div id="adminDashboard">
+                <div class="admin-section">
+                    <h4>🛡️ Admin Dashboard</h4>
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-number" id="totalVotes">0</div><div>Total Votes</div></div>
+                        <div class="stat-card"><div class="stat-number" id="todayVotes">0</div><div>Today's Votes</div></div>
+                        <div class="stat-card"><div class="stat-number" id="maleVotes">0</div><div>Male Voters</div></div>
+                        <div class="stat-card"><div class="stat-number" id="femaleVotes">0</div><div>Female Voters</div></div>
+                        <div class="stat-card"><div class="stat-number" id="ward1Votes">0</div><div>Ward 1 Votes</div></div>
+                        <div class="stat-card"><div class="stat-number" id="ward2Votes">0</div><div>Ward 2 Votes</div></div>
+                    </div>
+                    <div class="vote-demographics">
+                        <div><h5>Age Group Distribution</h5><div id="ageChart" class="demographic-chart"></div></div>
+                        <div><h5>Gender Distribution</h5><div id="genderChart" class="demographic-chart"></div></div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <h5>Recent Votes</h5>
+                        <div id="recentVotesList" style="max-height: 200px; overflow-y: auto; font-size: 0.85rem; background: #f8fafc; padding: 10px; border-radius: 8px;"></div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <h5>Average Priorities</h5>
+                        <div id="avgPriorities" style="background: #f8fafc; padding: 10px; border-radius: 8px; font-size: 0.85rem;">
+                            <div>Education: <span id="avgEdu">25%</span></div>
+                            <div>Infrastructure: <span id="avgInfra">25%</span></div>
+                            <div>Healthcare: <span id="avgHealth">25%</span></div>
+                            <div>Sanitation: <span id="avgSan">25%</span></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-primary" style="width:100%;" onclick="exportVoteData()">📊 Export Vote Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<!-- PROJECTS MAP -->
+<section class="news-section" id="projects">
     <div class="section-title">
         <span class="badge badge-blue">Real World Impact</span>
         <h2 id="projectsTitle">Infrastructure Projects Map</h2>
@@ -501,8 +487,8 @@
     </div>
 </section>
 
-<!-- HOW IT WORKS SECTION -->
-<section id="how-it-works" class="how-it-works">
+<!-- HOW IT WORKS -->
+<section class="how-it-works" id="how-it-works">
     <div class="section-title">
         <span class="badge badge-blue">Process Transparency</span>
         <h2 id="howTitle">How CivicSpend Works</h2>
@@ -526,7 +512,7 @@
     </div>
 </section>
 
-<!-- FAQ SECTION -->
+<!-- FAQ -->
 <section class="faq-section">
     <div class="section-title">
         <span class="badge badge-blue">Resources</span>
@@ -534,27 +520,27 @@
     </div>
     <div class="accordion">
         <div class="accordion-item">
-            <div class="accordion-header"><span id="faq1">Where does this data come from?</span> <span>+</span></div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq1">Where does this data come from?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq1a">Our data is fetched from the Open Data portal of the Municipal Corporation. It is updated once the quarterly audits are finalized.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header"><span id="faq2">How secure is my vote?</span> <span>+</span></div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq2">How secure is my vote?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq2a">Votes are cryptographically signed and stored against your verified phone number. No personal data is shown publicly.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header"><span id="faq3">Can I change my vote?</span> <span>+</span></div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq3">Can I change my vote?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq3a">One vote per verified number per budget cycle. Contact support@civicspend.gov for special circumstances.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header"><span id="faq4">Is this official government site?</span> <span>+</span></div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq4">Is this official government site?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq4a">CivicSpend Pro is a civic-tech initiative approved by the City Finance Department for transparency.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header"><span id="faq5">How often is data updated?</span> <span>+</span></div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq5">How often is data updated?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq5a">Financial data is updated every 24 hours. Project status updates are real-time as reported by field officers.</span></div>
         </div>
         <div class="accordion-item">
-            <div class="accordion-header"><span id="faq6">Who can see my vote?</span> <span>+</span></div>
+            <div class="accordion-header" onclick="toggleAccordion(this)"><span id="faq6">Who can see my vote?</span> <span>+</span></div>
             <div class="accordion-content"><span id="faq6a">Only aggregated anonymous statistics are shown publicly. Individual votes are visible only to authorized administrators for analysis.</span></div>
         </div>
     </div>
@@ -606,10 +592,10 @@
         <div>
             <h4>Quick Links</h4>
             <ul>
-                <li><a href="#dashboard">Dashboard</a></li>
-                <li><a href="#vote">Vote Now</a></li>
-                <li><a href="#projects">Project Map</a></li>
-                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a onclick="scrollToSection('dashboard')">Dashboard</a></li>
+                <li><a onclick="scrollToSection('vote')">Vote Now</a></li>
+                <li><a onclick="scrollToSection('projects')">Project Map</a></li>
+                <li><a onclick="scrollToSection('how-it-works')">How It Works</a></li>
             </ul>
         </div>
     </div>
@@ -619,63 +605,34 @@
 </footer>
 
 <script>
-    // ========== SIMPLE FIXED NAVIGATION ==========
-    
     // Global variables
     let currentUser = null;
     let isAdmin = false;
     let currentLanguage = 'en';
     let mapMarkers = [];
     let map = null;
-    let sliders = {};
 
-    // SIMPLE SCROLLING FIX - Works 100%
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Setting up navigation...');
-        
-        // 1. Fix ALL navigation links
-        document.querySelectorAll('a[href^="#"]').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const href = this.getAttribute('href');
-                const sectionId = href.substring(1);
-                
-                console.log('Clicked:', sectionId);
-                
-                // Handle admin link
-                if (sectionId === 'admin' && isAdmin) {
-                    document.getElementById('adminDashboard').style.display = 'block';
-                    document.getElementById('vote').scrollIntoView({behavior: 'smooth'});
-                    return;
-                }
-                
-                // Find and scroll to section
-                const target = document.getElementById(sectionId);
-                if (target) {
-                    window.scrollTo({
-                        top: target.offsetTop - 80,
-                        behavior: 'smooth'
-                    });
-                }
+    // SCROLL TO SECTION FUNCTION (FIX for navigation tabs)
+    window.scrollToSection = function(sectionId) {
+        const element = document.getElementById(sectionId);
+        if (element) {
+            const offset = 80; // Account for sticky header
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+            
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
             });
-        });
-        
-        // 2. Fix language selector
-        document.getElementById('languageSelect').addEventListener('change', function() {
-            changeLanguage();
-        });
-        
-        // 3. Fix accordion
-        document.querySelectorAll('.accordion-header').forEach(header => {
-            header.addEventListener('click', function() {
-                const content = this.nextElementSibling;
-                content.classList.toggle('active');
-                this.lastElementChild.textContent = content.classList.contains('active') ? '−' : '+';
-            });
-        });
-        
-        console.log('Navigation ready!');
-    });
+        }
+    };
+
+    // SHOW ADMIN SECTION (when admin link clicked)
+    window.showAdminSection = function() {
+        if (isAdmin) {
+            scrollToSection('vote');
+        }
+    };
 
     // ENTRY MODAL HANDLING
     window.chooseEntry = function(type) {
@@ -704,8 +661,10 @@
         localStorage.removeItem('currentUser');
         localStorage.removeItem('isAdmin');
         
+        // Most important lines — close modal & refresh UI
         closeEntryModal();
         updateUI();
+        
         loadPublicStats();
         
         console.log("→ Guest mode activated");
@@ -774,7 +733,7 @@
             
             // Close ALL modals
             closeLoginModal();
-            closeEntryModal();
+            closeEntryModal();           // ← This was often missing!
             
             updateUI();
             checkUserVote();
@@ -802,7 +761,7 @@
         
         // Close both modals
         closeAdminLoginModal();
-        closeEntryModal();
+        closeEntryModal();           // ← This was missing in many cases
         
         updateUI();
         loadAdminStats();
@@ -810,7 +769,7 @@
         alert('✅ Admin login successful!');
     };
 
-    // LOGOUT
+    // LOGOUT - also show entry modal again if you want
     window.logout = function() {
         currentUser = null;
         isAdmin = false;
@@ -821,7 +780,7 @@
         updateUI();
         loadPublicStats();
         
-        // Show entry modal again after logout
+        // Optional: show entry modal again after logout
         document.getElementById('entryModal').style.display = 'block';
         setTimeout(() => {
             document.getElementById('entryModal').classList.add('show');
@@ -896,122 +855,11 @@
             document.getElementById('already_voted').style.display = 'block';
             document.getElementById('voting_controls').style.display = 'none';
             document.getElementById('login_prompt').style.display = 'none';
-            
-            // Show user's previous vote values
-            const voteData = userVotes[currentUser.uid];
-            document.getElementById('user_welcome').innerText = `Verified: ${currentUser.phoneNumber || 'User'} | Your previous vote recorded`;
         } else {
             document.getElementById('user_welcome').innerText = "Verified: " + (currentUser.phoneNumber || 'User');
             document.getElementById('login_prompt').style.display = 'none';
             document.getElementById('voting_controls').style.display = 'block';
             document.getElementById('already_voted').style.display = 'none';
-            
-            // Initialize sliders with default values
-            initializeSliders();
-        }
-    }
-    
-    // FIX: VOTE SLIDER MANAGEMENT SYSTEM
-    function initializeSliders() {
-        // Store slider references
-        sliders = {
-            edu: document.getElementById('edu_p'),
-            infra: document.getElementById('inf_p'),
-            health: document.getElementById('health_p'),
-            san: document.getElementById('san_p')
-        };
-        
-        // Initialize all to 25%
-        Object.values(sliders).forEach(slider => {
-            if (slider) slider.value = 25;
-        });
-        
-        // Update display values
-        updateSliderValue('val1', 25);
-        updateSliderValue('val2', 25);
-        updateSliderValue('val3', 25);
-        updateSliderValue('val4', 25);
-        
-        // Add event listeners for dynamic adjustment
-        Object.values(sliders).forEach(slider => {
-            if (slider) {
-                slider.addEventListener('input', function() {
-                    adjustOtherSliders(this.id, parseInt(this.value));
-                });
-            }
-        });
-    }
-    
-    // FIX: DYNAMIC SLIDER ADJUSTMENT
-    function adjustOtherSliders(changedId, newValue) {
-        const sliderIds = ['edu_p', 'inf_p', 'health_p', 'san_p'];
-        const changedIndex = sliderIds.indexOf(changedId);
-        
-        if (changedIndex === -1) return;
-        
-        // Calculate total of other sliders
-        let otherTotal = 0;
-        for (let i = 0; i < sliderIds.length; i++) {
-            if (i !== changedIndex) {
-                otherTotal += parseInt(sliders[sliderIds[i].split('_')[0]].value);
-            }
-        }
-        
-        // Calculate remaining percentage
-        const remaining = 100 - newValue;
-        
-        // If other sliders exceed remaining, adjust them proportionally
-        if (otherTotal > remaining) {
-            const scaleFactor = remaining / otherTotal;
-            
-            for (let i = 0; i < sliderIds.length; i++) {
-                if (i !== changedIndex) {
-                    const slider = sliders[sliderIds[i].split('_')[0]];
-                    const newSliderValue = Math.round(parseInt(slider.value) * scaleFactor);
-                    slider.value = newSliderValue;
-                    
-                    // Update display
-                    const displayId = 'val' + (i + 1);
-                    updateSliderValue(displayId, newSliderValue);
-                }
-            }
-        }
-        
-        // Update total display
-        updateTotalDisplay();
-    }
-    
-    // FIX: UPDATE SLIDER VALUE DISPLAY
-    window.updateSliderValue = function(id, value) {
-        const element = document.getElementById(id);
-        if (element) {
-            element.textContent = value + '%';
-            updateTotalDisplay();
-        }
-    };
-    
-    // FIX: UPDATE TOTAL DISPLAY
-    function updateTotalDisplay() {
-        if (!sliders.edu || !sliders.infra || !sliders.health || !sliders.san) return;
-        
-        const total = parseInt(sliders.edu.value) + parseInt(sliders.infra.value) + 
-                     parseInt(sliders.health.value) + parseInt(sliders.san.value);
-        
-        const totalElement = document.getElementById('totalPercent');
-        if (totalElement) {
-            totalElement.textContent = total + '%';
-            
-            // Color code the total
-            if (total === 100) {
-                totalElement.style.color = '#10b981';
-                totalElement.innerHTML = '100% ✓';
-            } else if (total < 100) {
-                totalElement.style.color = '#f59e0b';
-                totalElement.innerHTML = total + '% (Add ' + (100 - total) + '%)';
-            } else {
-                totalElement.style.color = '#ef4444';
-                totalElement.innerHTML = total + '% (Reduce ' + (total - 100) + '%)';
-            }
         }
     }
     
@@ -1031,28 +879,16 @@
             return;
         }
         
-        // Check if total is 100%
-        const eduVal = parseInt(document.getElementById('edu_p').value);
-        const infraVal = parseInt(document.getElementById('inf_p').value);
-        const healthVal = parseInt(document.getElementById('health_p').value);
-        const sanVal = parseInt(document.getElementById('san_p').value);
-        const total = eduVal + infraVal + healthVal + sanVal;
-        
-        if (total !== 100) {
-            alert(`Total must be exactly 100%. Currently: ${total}%. Please adjust your priorities.`);
-            return;
-        }
-        
         const voteData = {
             uid: currentUser.uid,
             phone: currentUser.phoneNumber || 'Not provided',
             gender: gender,
             ageGroup: ageGroup,
             ward: ward,
-            edu: eduVal,
-            infra: infraVal,
-            health: healthVal,
-            san: sanVal,
+            edu: document.getElementById('edu_p').value,
+            infra: document.getElementById('inf_p').value,
+            health: document.getElementById('health_p').value,
+            san: document.getElementById('san_p').value,
             reason: document.getElementById('voteReason').value || 'No reason provided',
             followUpdates: document.getElementById('followUpdates').checked,
             timestamp: Date.now(),
@@ -1064,7 +900,7 @@
         userVotes[currentUser.uid] = voteData;
         localStorage.setItem('userVotes', JSON.stringify(userVotes));
         
-        alert('✅ Vote submitted successfully! Thank you for your input.');
+        alert('✅ Vote submitted successfully!');
         checkUserVote();
         loadPublicStats();
         
@@ -1081,7 +917,7 @@
         
         const ageCounts = { '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 };
         const genderCounts = { 'male': 0, 'female': 0, 'other': 0 };
-        let totalEdu = 0, totalInfra = 0, totalHealth = 0, totalSan = 0;
+        let totalEdu = 0, totalInfra = 0;
         
         votes.forEach(v => {
             if (v.ageGroup && ageCounts[v.ageGroup] !== undefined) {
@@ -1092,8 +928,6 @@
             }
             if (v.edu) totalEdu += parseInt(v.edu);
             if (v.infra) totalInfra += parseInt(v.infra);
-            if (v.health) totalHealth += parseInt(v.health);
-            if (v.san) totalSan += parseInt(v.san);
         });
         
         const todayVotes = votes.filter(v => v.date === today).length;
@@ -1403,6 +1237,17 @@
     }
     
     // UTILITY FUNCTIONS
+    window.updateSlider = function(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value + '%';
+    };
+    
+    window.toggleAccordion = function(header) {
+        const content = header.nextElementSibling;
+        content.classList.toggle('active');
+        header.lastElementChild.textContent = content.classList.contains('active') ? '−' : '+';
+    };
+    
     window.downloadCSV = function() {
         const csv = 'Date,Category,Description,Amount,Ward,Vendor,Status\n' +
                    '2026-01-14,Education,Smart School Project,25000000,Ward 5,ABC Constructions,Completed\n' +
@@ -1441,23 +1286,10 @@
     };
     
     window.exportVoteData = function() {
-        const userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
-        const votes = Object.values(userVotes);
-        
-        const csv = 'Phone,Gender,Age Group,Ward,Education,Infrastructure,Healthcare,Sanitation,Reason,Date\n' +
-                   votes.map(v => 
-                       `"${v.phone || ''}","${v.gender || ''}","${v.ageGroup || ''}","${v.ward || ''}",${v.edu || 0},${v.infra || 0},${v.health || 0},${v.san || 0},"${(v.reason || '').replace(/"/g, '""')}","${v.date || ''}"`
-                   ).join('\n');
-        
-        const blob = new Blob([csv], {type: 'text/csv'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'vote_data_export.csv';
-        a.click();
+        alert('Vote data export would be generated. This is a demo feature.');
     };
     
-    // TRANSLATION SYSTEM
+    // TRANSLATION SYSTEM - FIXED
     const I18N = {
         en: {
             heroTitle: "Government Spending, <br><span style='color:var(--brand)'>Decoded for You.</span>",
@@ -1597,12 +1429,58 @@
             const el = document.getElementById(id);
             if (el && t[id]) {
                 if (id === 'heroTitle' || id === 'chartDesc') {
-                    el.innerHTML = t[id];
+                    el.innerHTML = t[id]; // Use innerHTML for elements with HTML
                 } else {
                     el.textContent = t[id];
                 }
             }
         });
+        
+        // Update select options
+        const genderSelect = document.getElementById('genderSelect');
+        const ageGroupSelect = document.getElementById('ageGroupSelect');
+        const wardSelect = document.getElementById('wardSelect');
+        
+        if (lang === 'ta') {
+            if (genderSelect) {
+                genderSelect.options[0].text = 'பாலினத்தைத் தேர்ந்தெடுக்கவும்';
+                genderSelect.options[1].text = 'ஆண்';
+                genderSelect.options[2].text = 'பெண்';
+                genderSelect.options[3].text = 'மற்றவை';
+            }
+            if (ageGroupSelect) {
+                ageGroupSelect.options[0].text = 'வயது குழுவைத் தேர்ந்தெடுக்கவும்';
+            }
+            if (wardSelect) {
+                wardSelect.options[0].text = 'உங்கள் வார்டைத் தேர்ந்தெடுக்கவும்';
+            }
+        } else if (lang === 'hi') {
+            if (genderSelect) {
+                genderSelect.options[0].text = 'लिंग चुनें';
+                genderSelect.options[1].text = 'पुरुष';
+                genderSelect.options[2].text = 'महिला';
+                genderSelect.options[3].text = 'अन्य';
+            }
+            if (ageGroupSelect) {
+                ageGroupSelect.options[0].text = 'आयु समूह चुनें';
+            }
+            if (wardSelect) {
+                wardSelect.options[0].text = 'अपना वार्ड चुनें';
+            }
+        } else {
+            if (genderSelect) {
+                genderSelect.options[0].text = 'Select Gender';
+                genderSelect.options[1].text = 'Male';
+                genderSelect.options[2].text = 'Female';
+                genderSelect.options[3].text = 'Other';
+            }
+            if (ageGroupSelect) {
+                ageGroupSelect.options[0].text = 'Select Age Group';
+            }
+            if (wardSelect) {
+                wardSelect.options[0].text = 'Select Your Ward';
+            }
+        }
     }
     
     // CHATBOT FUNCTIONS
@@ -1636,18 +1514,17 @@
     function generateBotResponse(message) {
         const lowerMessage = message.toLowerCase();
         
+        // Improved chatbot responses
         if (lowerMessage.includes('budget') || lowerMessage.includes('spending') || lowerMessage.includes('money')) {
             return "The current annual budget is ₹160 Cr allocated across Education (28%), Healthcare (20%), Infrastructure (36%), and Sanitation (16%). You can see the detailed breakdown in the main chart and download the data.";
         } else if (lowerMessage.includes('vote') || lowerMessage.includes('voting') || lowerMessage.includes('priority')) {
-            return "You can vote on budget priorities by logging in with your phone number. Select your gender, age group, ward, and use sliders to allocate percentages to Education, Infrastructure, Healthcare, and Sanitation. Total must equal 100%.";
+            return "You can vote on budget priorities by logging in with your phone number. Select your gender, age group, ward, and use sliders to allocate percentages to Education, Infrastructure, Healthcare, and Sanitation.";
         } else if (lowerMessage.includes('project') || lowerMessage.includes('map') || lowerMessage.includes('location')) {
             return "Check the Infrastructure Projects Map section to see active projects in your city. You can filter by ward and status. Click on markers for details and to report issues.";
         } else if (lowerMessage.includes('login') || lowerMessage.includes('sign in') || lowerMessage.includes('register')) {
             return "Users: Enter phone number and use '123456' as OTP. Admins: Use any email and password to login as admin.";
         } else if (lowerMessage.includes('admin') || lowerMessage.includes('dashboard')) {
             return "Admin dashboard shows voting statistics, demographic breakdowns, ward-wise distribution, and recent votes. Login as admin with any email/password to access.";
-        } else if (lowerMessage.includes('slider') || lowerMessage.includes('adjust') || lowerMessage.includes('percentage')) {
-            return "When you adjust one slider, the other sliders automatically adjust to keep the total at 100%. This ensures your vote percentages add up correctly.";
         } else if (lowerMessage.includes('data') || lowerMessage.includes('source') || lowerMessage.includes('where')) {
             return "Data comes from the Municipal Financial Management System (MFMS) and is updated every 24 hours. All data is validated and audited quarterly.";
         } else if (lowerMessage.includes('help') || lowerMessage.includes('how') || lowerMessage.includes('what')) {
@@ -1706,8 +1583,6 @@
                 });
             });
         }
-        
-        console.log('CivicSpend Pro fully loaded!');
     });
     
     function updateDataFreshness() {
@@ -1716,179 +1591,6 @@
         if (element) element.textContent = `Data synced ${hours}h ago`;
     }
 </script>
-<script>
-// ====== VERCELL/VANILLA JS FIX ======
-// This will work on ANY hosting
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== CivicSpend Interactive Fix Loading ===');
-    
-    // REMOVE ALL inline event handlers (they cause issues)
-    function removeAllInlineHandlers() {
-        var elements = document.querySelectorAll('*');
-        for (var i = 0; i < elements.length; i++) {
-            var el = elements[i];
-            ['onclick', 'onchange', 'oninput', 'onkeypress'].forEach(function(attr) {
-                if (el.hasAttribute(attr)) {
-                    el.removeAttribute(attr);
-                }
-            });
-        }
-    }
-    
-    removeAllInlineHandlers();
-    
-    // FIX 1: ALL NAVIGATION LINKS
-    var navLinks = document.querySelectorAll('a[href^="#"]');
-    for (var i = 0; i < navLinks.length; i++) {
-        navLinks[i].addEventListener('click', function(e) {
-            e.preventDefault();
-            var targetId = this.getAttribute('href').substring(1);
-            console.log('Navigating to:', targetId);
-            
-            var targetElement = document.getElementById(targetId);
-            if (targetElement) {
-                // Smooth scroll to element
-                window.scrollTo({
-                    top: targetElement.offsetTop - 80,
-                    behavior: 'smooth'
-                });
-            }
-        });
-        
-        // Make cursor visible
-        navLinks[i].style.cursor = 'pointer';
-    }
-    
-    // FIX 2: LANGUAGE SELECTOR
-    var langSelect = document.getElementById('languageSelect');
-    if (langSelect) {
-        langSelect.addEventListener('change', function() {
-            console.log('Language changed to:', this.value);
-            // If your translation function exists, call it
-            if (typeof window.changeLanguage === 'function') {
-                window.changeLanguage();
-            } else {
-                // Simple demo translation
-                var elements = {
-                    'heroTitle': {en: 'Government Spending, <br><span style="color:#2563eb">Decoded for You.</span>', ta: 'அரசு செலவு விளக்கம்', hi: 'सरकारी खर्च सरल'},
-                    'heroSubtitle': {en: 'CivicSpend Pro bridges the gap...', ta: 'நகராட்சி தரவு', hi: 'नगरपालिका डेटा'}
-                };
-                
-                for (var id in elements) {
-                    var el = document.getElementById(id);
-                    if (el && elements[this.value]) {
-                        el.innerHTML = elements[this.value][id] || elements['en'][id];
-                    }
-                }
-            }
-        });
-    }
-    
-    // FIX 3: MODAL BUTTONS
-    setTimeout(function() {
-        // Entry modal buttons
-        var buttons = document.querySelectorAll('button');
-        buttons.forEach(function(btn) {
-            var btnText = btn.textContent || btn.innerText;
-            
-            if (btnText.includes('Continue as User')) {
-                btn.addEventListener('click', function() {
-                    document.getElementById('entryUserActions').style.display = 'block';
-                    document.getElementById('entryAdminActions').style.display = 'none';
-                });
-            }
-            
-            if (btnText.includes('Continue as Admin')) {
-                btn.addEventListener('click', function() {
-                    document.getElementById('entryAdminActions').style.display = 'block';
-                    document.getElementById('entryUserActions').style.display = 'none';
-                });
-            }
-            
-            if (btnText.includes('Browse as Guest')) {
-                btn.addEventListener('click', function() {
-                    document.getElementById('entryModal').style.display = 'none';
-                    // Scroll to dashboard
-                    document.getElementById('dashboard').scrollIntoView({behavior: 'smooth'});
-                });
-            }
-            
-            if (btnText.includes('Login to Vote')) {
-                btn.addEventListener('click', function() {
-                    document.getElementById('loginModal').style.display = 'block';
-                    if (document.getElementById('entryModal')) {
-                        document.getElementById('entryModal').style.display = 'none';
-                    }
-                });
-            }
-        });
-        
-        // Close modal buttons
-        var closeButtons = document.querySelectorAll('.close-modal');
-        closeButtons.forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                this.closest('.login-modal').style.display = 'none';
-            });
-        });
-    }, 300);
-    
-    // FIX 4: ACCORDION
-    var accordionHeaders = document.querySelectorAll('.accordion-header');
-    accordionHeaders.forEach(function(header) {
-        header.addEventListener('click', function() {
-            var content = this.nextElementSibling;
-            var isActive = content.classList.contains('active');
-            
-            // Toggle this one
-            content.classList.toggle('active');
-            this.querySelector('span:last-child').textContent = isActive ? '+' : '−';
-        });
-    });
-    
-    // FIX 5: SLIDERS
-    var sliders = document.querySelectorAll('input[type="range"]');
-    sliders.forEach(function(slider) {
-        slider.addEventListener('input', function() {
-            var value = this.value;
-            var id = this.id;
-            
-            // Update display
-            var spanId = '';
-            if (id === 'edu_p') spanId = 'val1';
-            else if (id === 'inf_p') spanId = 'val2';
-            else if (id === 'health_p') spanId = 'val3';
-            else if (id === 'san_p') spanId = 'val4';
-            
-            var span = document.getElementById(spanId);
-            if (span) span.textContent = value + '%';
-        });
-    });
-    
-    console.log('=== CivicSpend is NOW INTERACTIVE ===');
-    console.log('Try clicking: Dashboard, How It Works, Language dropdown, FAQ items');
-});
-
-// Provide fallback functions
-window.scrollToSection = window.scrollToSection || function(sectionId) {
-    var element = document.getElementById(sectionId);
-    if (element) {
-        element.scrollIntoView({behavior: 'smooth', block: 'start'});
-    }
-};
-
-window.openLoginModal = window.openLoginModal || function() {
-    document.getElementById('loginModal').style.display = 'block';
-};
-
-window.closeLoginModal = window.closeLoginModal || function() {
-    document.getElementById('loginModal').style.display = 'none';
-};
-
-console.log('Interactive functions ready!');
-</script>
 
 </body>
 </html>
-
-
