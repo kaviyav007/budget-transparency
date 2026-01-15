@@ -78,12 +78,14 @@
             transition: opacity 0.3s ease;
         }
         .modal.show {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             opacity: 1;
         }
         .modal-content {
             background: white; 
-            margin: 10% auto; 
+            margin: 20px; 
             width: 90%; 
             max-width: 500px; 
             border-radius: 20px; 
@@ -91,6 +93,8 @@
             position: relative;
             transform: translateY(-20px);
             transition: transform 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .modal.show .modal-content {
             transform: translateY(0);
@@ -675,7 +679,7 @@
         </select>
         
         <span id="userStatus" class="user-status" style="display: none;"></span>
-        <button class="btn btn-secondary" id="loginBtn" onclick="openModal('userLoginModal')">Login</button>
+        <button class="btn btn-secondary" id="loginBtn" onclick="openModal('entryModal')">Login</button>
         <button class="btn btn-danger" id="logoutBtn" onclick="logout()" style="display: none;">Logout</button>
     </div>
 </nav>
@@ -1071,6 +1075,7 @@
 
             // Initialize Google Charts
             google.charts.load('current', {'packages':['corechart']});
+            google.charts.setOnLoadCallback(initializeCharts);
             
             // Check for existing auth state
             auth.onAuthStateChanged(async (user) => {
@@ -1078,9 +1083,13 @@
                     currentUser = user;
                     isAdmin = await checkIfAdmin(user.uid);
                     showToast(`Welcome back ${isAdmin ? 'Admin' : 'User'}!`, 'success');
+                } else {
+                    currentUser = null;
+                    isAdmin = false;
                 }
                 updateUI();
                 loadData();
+                checkUserVote();
             });
 
             // Initialize map
@@ -1102,6 +1111,11 @@
             console.error('Initialization error:', error);
             showToast('Error loading application', 'error');
         }
+    }
+
+    function initializeCharts() {
+        // Initialize charts with some default data
+        updateCharts({ '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 }, { 'male': 0, 'female': 0, 'other': 0 });
     }
 
     // =====================
@@ -1131,8 +1145,7 @@
             return;
         }
 
-        // In a real app, you would send OTP via SMS
-        // For demo, we'll simulate it
+        // For demo, we'll simulate OTP sending
         document.getElementById('userLoginForm').style.display = 'none';
         document.getElementById('otpContainer').style.display = 'block';
         showToast('OTP sent to ' + phoneNumber + ' (Demo: 123456)', 'success');
@@ -1148,23 +1161,36 @@
         }
 
         try {
-            // Create or get user with phone number
-            const userCredential = await auth.signInWithEmailAndPassword(
-                phoneNumber + '@civicspend.demo',
-                'demo123'
-            );
+            // Create email from phone number for Firebase authentication
+            const email = phoneNumber + '@civicspend.demo';
+            const password = 'demo123';
             
-            // Add phone number to user profile
-            await userCredential.user.updateProfile({
-                displayName: 'User-' + phoneNumber
-            });
+            // Try to sign in with the generated credentials
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
+            } catch (signInError) {
+                // If user doesn't exist, create a new one
+                if (signInError.code === 'auth/user-not-found') {
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    currentUser = userCredential.user;
+                    
+                    // Update profile with phone number
+                    await currentUser.updateProfile({
+                        displayName: 'User-' + phoneNumber
+                    });
+                } else {
+                    throw signInError;
+                }
+            }
 
             // Store user data in Firestore
-            await db.collection('users').doc(userCredential.user.uid).set({
+            await db.collection('users').doc(currentUser.uid).set({
                 phone: phoneNumber,
+                email: email,
+                isAdmin: false,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                isAdmin: false
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
 
             closeModal('userLoginModal');
@@ -1181,37 +1207,36 @@
         const password = document.getElementById('adminPassword').value || 'admin123';
 
         try {
-            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            let userCredential;
             
+            try {
+                userCredential = await auth.signInWithEmailAndPassword(email, password);
+            } catch (signInError) {
+                // If admin doesn't exist, create one
+                if (signInError.code === 'auth/user-not-found') {
+                    userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                } else {
+                    throw signInError;
+                }
+            }
+
             // Set as admin in Firestore
             await db.collection('users').doc(userCredential.user.uid).set({
                 email: email,
                 isAdmin: true,
-                lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
 
+            currentUser = userCredential.user;
             isAdmin = true;
+            
             closeModal('adminLoginModal');
             showToast('Admin login successful!', 'success');
             
         } catch (error) {
             console.error('Admin login error:', error);
-            // Create admin user if doesn't exist
-            try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                await db.collection('users').doc(userCredential.user.uid).set({
-                    email: email,
-                    isAdmin: true,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                isAdmin = true;
-                closeModal('adminLoginModal');
-                showToast('Admin account created and logged in!', 'success');
-                
-            } catch (createError) {
-                showToast('Login failed. Please try again.', 'error');
-            }
+            showToast('Login failed. Please try again.', 'error');
         }
     }
 
@@ -1220,6 +1245,7 @@
             const userDoc = await db.collection('users').doc(uid).get();
             return userDoc.exists && userDoc.data().isAdmin === true;
         } catch (error) {
+            console.error('Error checking admin status:', error);
             return false;
         }
     }
@@ -1231,7 +1257,6 @@
             isAdmin = false;
             updateUI();
             showToast('Logged out successfully', 'success');
-            setTimeout(() => openModal('entryModal'), 500);
         } catch (error) {
             showToast('Logout failed', 'error');
         }
@@ -1277,7 +1302,7 @@
 
         const voteData = {
             userId: currentUser.uid,
-            phone: currentUser.phoneNumber || currentUser.email,
+            phone: currentUser.email ? currentUser.email.split('@')[0] : '',
             gender: gender,
             ageGroup: ageGroup,
             ward: ward,
@@ -1394,12 +1419,9 @@
                 document.getElementById('voting_controls').style.display = 'none';
                 document.getElementById('already_voted').style.display = 'none';
             } else {
-                userStatus.textContent = `👤 ${currentUser.phoneNumber || currentUser.email || 'User'}`;
+                userStatus.textContent = `👤 ${currentUser.email ? currentUser.email.split('@')[0] : 'User'}`;
                 adminLink.style.display = 'none';
                 adminDashboard.style.display = 'none';
-                
-                // Check if user has voted
-                checkUserVote();
             }
         } else {
             loginBtn.style.display = 'block';
@@ -1429,7 +1451,7 @@
                 document.getElementById('already_voted').style.display = 'block';
                 document.getElementById('login_prompt').style.display = 'none';
             } else {
-                document.getElementById('user_welcome').textContent = `Welcome ${currentUser.phoneNumber || 'User'}! Set your priorities.`;
+                document.getElementById('user_welcome').textContent = `Welcome ${currentUser.email ? currentUser.email.split('@')[0] : 'User'}! Set your priorities.`;
                 document.getElementById('login_prompt').style.display = 'none';
                 document.getElementById('voting_controls').style.display = 'block';
                 document.getElementById('already_voted').style.display = 'none';
@@ -1544,74 +1566,74 @@
     // CHART FUNCTIONS
     // =====================
     function updateCharts(ageCounts, genderCounts) {
-        google.charts.setOnLoadCallback(() => {
-            // Age Chart
-            const ageData = google.visualization.arrayToDataTable([
-                ['Age', 'Votes'],
-                ['18-25', ageCounts['18-25']],
-                ['26-35', ageCounts['26-35']],
-                ['36-50', ageCounts['36-50']],
-                ['50+', ageCounts['50+']]
-            ]);
+        // Age Chart
+        const ageData = google.visualization.arrayToDataTable([
+            ['Age', 'Votes'],
+            ['18-25', ageCounts['18-25']],
+            ['26-35', ageCounts['26-35']],
+            ['36-50', ageCounts['36-50']],
+            ['50+', ageCounts['50+']]
+        ]);
 
-            const ageOptions = {
-                title: 'Age Distribution',
+        const ageOptions = {
+            title: 'Age Distribution',
+            backgroundColor: 'transparent',
+            colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444'],
+            pieHole: 0.4
+        };
+
+        if (document.getElementById('ageChart')) {
+            new google.visualization.PieChart(document.getElementById('ageChart'))
+                .draw(ageData, ageOptions);
+        }
+
+        if (document.getElementById('publicAgeChart')) {
+            new google.visualization.ColumnChart(document.getElementById('publicAgeChart'))
+                .draw(ageData, { ...ageOptions, title: '' });
+        }
+
+        // Gender Chart
+        const genderData = google.visualization.arrayToDataTable([
+            ['Gender', 'Votes'],
+            ['Male', genderCounts['male']],
+            ['Female', genderCounts['female']],
+            ['Other', genderCounts['other'] || 0]
+        ]);
+
+        const genderOptions = {
+            backgroundColor: 'transparent',
+            colors: ['#2563eb', '#10b981', '#f59e0b'],
+            pieHole: 0.4
+        };
+
+        if (document.getElementById('genderChart')) {
+            new google.visualization.PieChart(document.getElementById('genderChart'))
+                .draw(genderData, { ...genderOptions, title: 'Gender Distribution' });
+        }
+
+        if (document.getElementById('publicGenderChart')) {
+            new google.visualization.PieChart(document.getElementById('publicGenderChart'))
+                .draw(genderData, { ...genderOptions, title: '' });
+        }
+
+        // Main Budget Chart
+        const budgetData = google.visualization.arrayToDataTable([
+            ['Category', 'Amount (₹ Cr)'],
+            ['Education', 45],
+            ['Healthcare', 32],
+            ['Infrastructure', 58],
+            ['Sanitation', 25]
+        ]);
+
+        if (document.getElementById('main_chart')) {
+            new google.visualization.PieChart(document.getElementById('main_chart')).draw(budgetData, {
+                pieHole: 0.6,
+                chartArea: { width: '90%', height: '80%' },
+                legend: { position: 'bottom' },
                 backgroundColor: 'transparent',
                 colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
-            };
-
-            if (document.getElementById('ageChart')) {
-                new google.visualization.PieChart(document.getElementById('ageChart'))
-                    .draw(ageData, ageOptions);
-            }
-
-            if (document.getElementById('publicAgeChart')) {
-                new google.visualization.ColumnChart(document.getElementById('publicAgeChart'))
-                    .draw(ageData, { ...ageOptions, title: '' });
-            }
-
-            // Gender Chart
-            const genderData = google.visualization.arrayToDataTable([
-                ['Gender', 'Votes'],
-                ['Male', genderCounts['male']],
-                ['Female', genderCounts['female']],
-                ['Other', genderCounts['other']]
-            ]);
-
-            const genderOptions = {
-                backgroundColor: 'transparent',
-                colors: ['#2563eb', '#10b981', '#f59e0b']
-            };
-
-            if (document.getElementById('genderChart')) {
-                new google.visualization.PieChart(document.getElementById('genderChart'))
-                    .draw(genderData, { ...genderOptions, title: 'Gender Distribution' });
-            }
-
-            if (document.getElementById('publicGenderChart')) {
-                new google.visualization.PieChart(document.getElementById('publicGenderChart'))
-                    .draw(genderData, { ...genderOptions, title: '' });
-            }
-
-            // Main Budget Chart
-            const budgetData = google.visualization.arrayToDataTable([
-                ['Category', 'Amount (₹ Cr)'],
-                ['Education', 45],
-                ['Healthcare', 32],
-                ['Infrastructure', 58],
-                ['Sanitation', 25]
-            ]);
-
-            if (document.getElementById('main_chart')) {
-                new google.visualization.PieChart(document.getElementById('main_chart')).draw(budgetData, {
-                    pieHole: 0.6,
-                    chartArea: { width: '90%', height: '80%' },
-                    legend: { position: 'bottom' },
-                    backgroundColor: 'transparent',
-                    colors: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
-                });
-            }
-        });
+            });
+        }
     }
 
     // =====================
@@ -1750,7 +1772,7 @@
             const votes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
             const csv = 'ID,Phone,Gender,AgeGroup,Ward,Education,Infrastructure,Healthcare,Sanitation,Timestamp\n' +
-                       votes.map(v => `${v.id},${v.phone},${v.gender},${v.ageGroup},${v.ward},${v.education},${v.infrastructure},${v.healthcare},${v.sanitation},${v.timestamp?.toDate?.() || new Date()}`).join('\n');
+                       votes.map(v => `${v.id},${v.phone || ''},${v.gender},${v.ageGroup},${v.ward},${v.education},${v.infrastructure},${v.healthcare},${v.sanitation},${v.timestamp?.toDate?.() || new Date()}`).join('\n');
             
             const blob = new Blob([csv], {type: 'text/csv'});
             const url = URL.createObjectURL(blob);
