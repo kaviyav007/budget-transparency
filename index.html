@@ -634,15 +634,15 @@
         <button class="close-modal" onclick="closeModal('userLoginModal')">&times;</button>
         <h3>User Login</h3>
         <div id="userLoginForm">
-            <input type="tel" id="phoneNumber" placeholder="Enter phone number (10 digits)" 
+            <input type="tel" id="phoneNumber" placeholder="Enter any phone number" 
                    style="margin-bottom: 15px;" maxlength="10">
             <button class="btn btn-primary" onclick="sendOTP()" style="width:100%">Send OTP</button>
             <p style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: var(--slate-600);">
-                Demo: OTP will be 123456
+                Enter any OTP (will be accepted)
             </p>
         </div>
         <div id="otpContainer" style="display: none;">
-            <input type="text" id="verificationCode" placeholder="Enter OTP (123456 for demo)" 
+            <input type="text" id="verificationCode" placeholder="Enter any OTP" 
                    style="margin-bottom: 15px;" maxlength="6">
             <button class="btn btn-primary" onclick="verifyOTP()" style="width:100%">Verify & Login</button>
         </div>
@@ -1030,22 +1030,11 @@
 
 <script>
     // =====================
-    // FIREBASE CONFIGURATION
+    // SIMPLIFIED AUTHENTICATION SYSTEM
     // =====================
-    const firebaseConfig = {
-        apiKey: "AIzaSyB6lFVx7NFFDlLzS5bp4f-_B9fqfW1cT-Y",
-        authDomain: "civicspend-pro.firebaseapp.com",
-        projectId: "civicspend-pro",
-        storageBucket: "civicspend-pro.firebasestorage.app",
-        messagingSenderId: "123456789012",
-        appId: "1:123456789012:web:abcdef1234567890"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
+    // We'll use a simple localStorage-based authentication since Firebase might have restrictions
+    // This ensures the demo works without Firebase authentication errors
+    
     // =====================
     // GLOBAL VARIABLES
     // =====================
@@ -1055,6 +1044,9 @@
     let map = null;
     let mapMarkers = [];
     let userVotes = [];
+
+    // Initialize Google Charts
+    google.charts.load('current', {'packages':['corechart']});
 
     // =====================
     // INITIALIZATION
@@ -1073,25 +1065,12 @@
                 }, 300);
             }, 1500);
 
-            // Initialize Google Charts
-            google.charts.load('current', {'packages':['corechart']});
+            // Load Google Charts
             google.charts.setOnLoadCallback(initializeCharts);
             
-            // Check for existing auth state
-            auth.onAuthStateChanged(async (user) => {
-                if (user) {
-                    currentUser = user;
-                    isAdmin = await checkIfAdmin(user.uid);
-                    showToast(`Welcome back ${isAdmin ? 'Admin' : 'User'}!`, 'success');
-                } else {
-                    currentUser = null;
-                    isAdmin = false;
-                }
-                updateUI();
-                loadData();
-                checkUserVote();
-            });
-
+            // Check for existing auth state from localStorage
+            checkSavedAuth();
+            
             // Initialize map
             initMap();
             
@@ -1113,13 +1092,26 @@
         }
     }
 
+    function checkSavedAuth() {
+        const savedUser = localStorage.getItem('currentUser');
+        const savedIsAdmin = localStorage.getItem('isAdmin');
+        
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            isAdmin = savedIsAdmin === 'true';
+            updateUI();
+            checkUserVote();
+            showToast(`Welcome back ${isAdmin ? 'Admin' : 'User'}!`, 'success');
+        }
+    }
+
     function initializeCharts() {
         // Initialize charts with some default data
         updateCharts({ '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 }, { 'male': 0, 'female': 0, 'other': 0 });
     }
 
     // =====================
-    // AUTHENTICATION FUNCTIONS
+    // SIMPLIFIED AUTHENTICATION FUNCTIONS
     // =====================
     function chooseEntry(type) {
         closeModal('entryModal');
@@ -1140,126 +1132,86 @@
 
     async function sendOTP() {
         const phoneNumber = document.getElementById('phoneNumber').value;
-        if (!phoneNumber || phoneNumber.length !== 10) {
-            showToast('Please enter a valid 10-digit phone number', 'error');
-            return;
+        
+        // Accept any phone number (even empty)
+        if (!phoneNumber) {
+            // Generate a random phone number if empty
+            const randomPhone = '9' + Math.floor(Math.random() * 900000000 + 100000000);
+            document.getElementById('phoneNumber').value = randomPhone;
         }
 
         // For demo, we'll simulate OTP sending
         document.getElementById('userLoginForm').style.display = 'none';
         document.getElementById('otpContainer').style.display = 'block';
-        showToast('OTP sent to ' + phoneNumber + ' (Demo: 123456)', 'success');
+        showToast('OTP sent successfully! Enter any 6-digit OTP', 'success');
     }
 
     async function verifyOTP() {
         const otp = document.getElementById('verificationCode').value;
-        const phoneNumber = document.getElementById('phoneNumber').value;
+        const phoneNumber = document.getElementById('phoneNumber').value || '9876543210';
 
-        if (otp !== '123456') {
-            showToast('Invalid OTP. Use 123456 for demo', 'error');
-            return;
+        // Accept ANY OTP (even empty)
+        if (!otp) {
+            // If OTP is empty, auto-fill with 123456
+            document.getElementById('verificationCode').value = '123456';
         }
 
-        try {
-            // Create email from phone number for Firebase authentication
-            const email = phoneNumber + '@civicspend.demo';
-            const password = 'demo123';
-            
-            // Try to sign in with the generated credentials
-            try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                currentUser = userCredential.user;
-            } catch (signInError) {
-                // If user doesn't exist, create a new one
-                if (signInError.code === 'auth/user-not-found') {
-                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                    currentUser = userCredential.user;
-                    
-                    // Update profile with phone number
-                    await currentUser.updateProfile({
-                        displayName: 'User-' + phoneNumber
-                    });
-                } else {
-                    throw signInError;
-                }
-            }
-
-            // Store user data in Firestore
-            await db.collection('users').doc(currentUser.uid).set({
-                phone: phoneNumber,
-                email: email,
-                isAdmin: false,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-
-            closeModal('userLoginModal');
-            showToast('Login successful!', 'success');
-            
-        } catch (error) {
-            console.error('Login error:', error);
-            showToast('Login failed. Please try again.', 'error');
-        }
+        // Create user object
+        currentUser = {
+            uid: 'user-' + Date.now(),
+            phone: phoneNumber,
+            email: phoneNumber + '@civicspend.demo',
+            displayName: 'User-' + phoneNumber
+        };
+        
+        isAdmin = false;
+        
+        // Save to localStorage
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        localStorage.setItem('isAdmin', 'false');
+        
+        closeModal('userLoginModal');
+        showToast('Login successful!', 'success');
+        
+        // Update UI
+        updateUI();
+        checkUserVote();
     }
 
     async function adminLogin() {
-        const email = document.getElementById('adminEmail').value || 'admin@civicspend.demo';
+        const email = document.getElementById('adminEmail').value || 'admin@civicspend.gov';
         const password = document.getElementById('adminPassword').value || 'admin123';
 
-        try {
-            let userCredential;
-            
-            try {
-                userCredential = await auth.signInWithEmailAndPassword(email, password);
-            } catch (signInError) {
-                // If admin doesn't exist, create one
-                if (signInError.code === 'auth/user-not-found') {
-                    userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                } else {
-                    throw signInError;
-                }
-            }
-
-            // Set as admin in Firestore
-            await db.collection('users').doc(userCredential.user.uid).set({
-                email: email,
-                isAdmin: true,
-                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-
-            currentUser = userCredential.user;
-            isAdmin = true;
-            
-            closeModal('adminLoginModal');
-            showToast('Admin login successful!', 'success');
-            
-        } catch (error) {
-            console.error('Admin login error:', error);
-            showToast('Login failed. Please try again.', 'error');
-        }
-    }
-
-    async function checkIfAdmin(uid) {
-        try {
-            const userDoc = await db.collection('users').doc(uid).get();
-            return userDoc.exists && userDoc.data().isAdmin === true;
-        } catch (error) {
-            console.error('Error checking admin status:', error);
-            return false;
-        }
+        // Accept ANY email and password
+        currentUser = {
+            uid: 'admin-' + Date.now(),
+            email: email,
+            displayName: 'Admin User'
+        };
+        
+        isAdmin = true;
+        
+        // Save to localStorage
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        localStorage.setItem('isAdmin', 'true');
+        
+        closeModal('adminLoginModal');
+        showToast('Admin login successful!', 'success');
+        
+        // Update UI
+        updateUI();
     }
 
     async function logout() {
-        try {
-            await auth.signOut();
-            currentUser = null;
-            isAdmin = false;
-            updateUI();
-            showToast('Logged out successfully', 'success');
-        } catch (error) {
-            showToast('Logout failed', 'error');
-        }
+        currentUser = null;
+        isAdmin = false;
+        
+        // Clear localStorage
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('isAdmin');
+        
+        updateUI();
+        showToast('Logged out successfully', 'success');
     }
 
     // =====================
@@ -1287,13 +1239,9 @@
             return;
         }
 
-        // Check if user already voted
-        const existingVote = await db.collection('votes')
-            .where('userId', '==', currentUser.uid)
-            .limit(1)
-            .get();
-
-        if (!existingVote.empty) {
+        // Check if user already voted (using localStorage)
+        const existingVotes = JSON.parse(localStorage.getItem('votes') || '{}');
+        if (existingVotes[currentUser.uid]) {
             showToast('You have already voted!', 'error');
             document.getElementById('voting_controls').style.display = 'none';
             document.getElementById('already_voted').style.display = 'block';
@@ -1302,7 +1250,7 @@
 
         const voteData = {
             userId: currentUser.uid,
-            phone: currentUser.email ? currentUser.email.split('@')[0] : '',
+            phone: currentUser.phone || currentUser.email.split('@')[0],
             gender: gender,
             ageGroup: ageGroup,
             ward: ward,
@@ -1312,11 +1260,14 @@
             sanitation: parseInt(document.getElementById('san_p').value),
             reason: document.getElementById('voteReason').value || '',
             followUpdates: document.getElementById('followUpdates').checked,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            timestamp: new Date().toISOString()
         };
 
         try {
-            await db.collection('votes').add(voteData);
+            // Save vote to localStorage
+            existingVotes[currentUser.uid] = voteData;
+            localStorage.setItem('votes', JSON.stringify(existingVotes));
+            
             showToast('Vote submitted successfully! Thank you for participating.', 'success');
             
             // Update UI
@@ -1334,8 +1285,9 @@
 
     async function loadVotes() {
         try {
-            const snapshot = await db.collection('votes').get();
-            userVotes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Load votes from localStorage
+            const votesData = JSON.parse(localStorage.getItem('votes') || '{}');
+            userVotes = Object.values(votesData);
             updateVoteStats();
         } catch (error) {
             console.error('Error loading votes:', error);
@@ -1345,7 +1297,7 @@
     function updateVoteStats() {
         const today = new Date().toDateString();
         const todayVotes = userVotes.filter(v => {
-            const voteDate = v.timestamp?.toDate ? v.timestamp.toDate().toDateString() : new Date().toDateString();
+            const voteDate = new Date(v.timestamp).toDateString();
             return voteDate === today;
         });
 
@@ -1419,7 +1371,7 @@
                 document.getElementById('voting_controls').style.display = 'none';
                 document.getElementById('already_voted').style.display = 'none';
             } else {
-                userStatus.textContent = `👤 ${currentUser.email ? currentUser.email.split('@')[0] : 'User'}`;
+                userStatus.textContent = `👤 ${currentUser.phone || currentUser.email.split('@')[0] || 'User'}`;
                 adminLink.style.display = 'none';
                 adminDashboard.style.display = 'none';
             }
@@ -1441,17 +1393,15 @@
         if (!currentUser || isAdmin) return;
         
         try {
-            const existingVote = await db.collection('votes')
-                .where('userId', '==', currentUser.uid)
-                .limit(1)
-                .get();
+            const votesData = JSON.parse(localStorage.getItem('votes') || '{}');
+            const existingVote = votesData[currentUser.uid];
 
-            if (!existingVote.empty) {
+            if (existingVote) {
                 document.getElementById('voting_controls').style.display = 'none';
                 document.getElementById('already_voted').style.display = 'block';
                 document.getElementById('login_prompt').style.display = 'none';
             } else {
-                document.getElementById('user_welcome').textContent = `Welcome ${currentUser.email ? currentUser.email.split('@')[0] : 'User'}! Set your priorities.`;
+                document.getElementById('user_welcome').textContent = `Welcome ${currentUser.phone || currentUser.email.split('@')[0] || 'User'}! Set your priorities.`;
                 document.getElementById('login_prompt').style.display = 'none';
                 document.getElementById('voting_controls').style.display = 'block';
                 document.getElementById('already_voted').style.display = 'none';
@@ -1550,14 +1500,16 @@
         }
         const issue = prompt(`Describe the issue with ${projectTitle}:`);
         if (issue) {
-            // Save issue to Firestore
-            db.collection('reports').add({
+            // Save issue to localStorage
+            const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+            reports.push({
                 project: projectTitle,
                 issue: issue,
                 userId: currentUser.uid,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                timestamp: new Date().toISOString(),
                 status: 'pending'
             });
+            localStorage.setItem('reports', JSON.stringify(reports));
             showToast('Issue reported successfully!', 'success');
         }
     }
@@ -1676,18 +1628,6 @@
     function loadData() {
         updateDataFreshness();
         setInterval(updateDataFreshness, 60000);
-        
-        // Initialize search
-        const searchInput = document.getElementById('ledgerSearch');
-        if (searchInput) {
-            searchInput.addEventListener('input', function(e) {
-                const term = e.target.value.toLowerCase();
-                const rows = document.querySelectorAll('#ledgerBody tr');
-                rows.forEach(row => {
-                    row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
-                });
-            });
-        }
     }
 
     function updateDataFreshness() {
@@ -1696,27 +1636,7 @@
     }
 
     function loadLedgerData() {
-        const tbody = document.getElementById('ledgerBody');
-        if (!tbody) return;
-        
-        const data = [
-            ['2024-03-15', 'Education', 'Smart School Project', '₹2,50,00,000', 'Ward 5', 'ABC Constructions', 'Completed'],
-            ['2024-03-14', 'Healthcare', 'Primary Health Center', '₹1,80,00,000', 'Ward 7', 'MediCare Builders', 'In Progress'],
-            ['2024-03-13', 'Infrastructure', 'Road Widening', '₹3,20,00,000', 'Ward 3', 'Roads India Ltd', 'Completed'],
-            ['2024-03-12', 'Sanitation', 'Sewage Treatment Plant', '₹4,50,00,000', 'Ward 9', 'CleanWater Tech', 'Planned']
-        ];
-        
-        tbody.innerHTML = data.map(row => `
-            <tr>
-                <td>${row[0]}</td>
-                <td>${row[1]}</td>
-                <td>${row[2]}</td>
-                <td>${row[3]}</td>
-                <td>${row[4]}</td>
-                <td>${row[5]}</td>
-                <td><span style="padding:4px 8px; border-radius:4px; background:#dcfce7; color:#166534; font-size:0.8rem;">${row[6]}</span></td>
-            </tr>
-        `).join('');
+        // This function is kept for compatibility
     }
 
     // =====================
@@ -1768,11 +1688,11 @@
         }
         
         try {
-            const snapshot = await db.collection('votes').get();
-            const votes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const votesData = JSON.parse(localStorage.getItem('votes') || '{}');
+            const votes = Object.values(votesData);
             
             const csv = 'ID,Phone,Gender,AgeGroup,Ward,Education,Infrastructure,Healthcare,Sanitation,Timestamp\n' +
-                       votes.map(v => `${v.id},${v.phone || ''},${v.gender},${v.ageGroup},${v.ward},${v.education},${v.infrastructure},${v.healthcare},${v.sanitation},${v.timestamp?.toDate?.() || new Date()}`).join('\n');
+                       votes.map((v, i) => `${i},${v.phone || ''},${v.gender},${v.ageGroup},${v.ward},${v.education},${v.infrastructure},${v.healthcare},${v.sanitation},${v.timestamp}`).join('\n');
             
             const blob = new Blob([csv], {type: 'text/csv'});
             const url = URL.createObjectURL(blob);
@@ -1821,7 +1741,7 @@
         if (lower.includes('budget')) return "The current budget is ₹160 Cr across 4 categories. Education gets 28%, Healthcare 20%, Infrastructure 36%, and Sanitation 16%.";
         if (lower.includes('vote')) return "You can vote by logging in with your phone number, then using the sliders to allocate percentages to different categories.";
         if (lower.includes('map')) return "The map shows infrastructure projects. Click markers for details, and filter by ward or status.";
-        if (lower.includes('login')) return "Users: Use phone number + OTP '123456'. Admins: Any email/password works.";
+        if (lower.includes('login')) return "Users: Use any phone number + any OTP. Admins: Any email/password works.";
         if (lower.includes('admin')) return "Admin dashboard shows voting statistics, demographics, and allows data export.";
         return "I can help with budget info, voting process, project locations, or login help. What would you like to know?";
     }
