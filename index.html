@@ -1697,7 +1697,119 @@
         const element = document.getElementById('dataFreshness');
         if (element) element.textContent = `Data synced ${hours}h ago`;
     }
+    // ====== COMPLETE FIX FOR NAVIGATION ======
+
+// 1. Fix scrolling function
+function scrollToSectionFixed(sectionId, event) {
+    if (event) event.preventDefault();
+    
+    console.log('Attempting to scroll to:', sectionId);
+    
+    // Handle admin link specially
+    if (sectionId === 'admin') {
+        if (!isAdmin) return;
+        sectionId = 'vote';
+    }
+    
+    const element = document.getElementById(sectionId);
+    if (element) {
+        const offset = 80;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
+        
+        window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+        });
+    }
+}
+
+// 2. Fix all navigation links
+function fixAllNavigation() {
+    // Fix main navigation
+    const navLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            const sectionId = href.substring(1);
+            scrollToSectionFixed(sectionId, e);
+        });
+    });
+    
+    // Fix footer links
+    const footerLinks = document.querySelectorAll('.footer-grid a[href^="#"]');
+    footerLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            const sectionId = href.substring(1);
+            scrollToSectionFixed(sectionId, e);
+        });
+    });
+    
+    // Fix CTA buttons
+    const ctaLinks = document.querySelectorAll('.cta-group a[href^="#"]');
+    ctaLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            const sectionId = href.substring(1);
+            scrollToSectionFixed(sectionId, e);
+        });
+    });
+    
+    // Fix language selector
+    const langSelect = document.getElementById('languageSelect');
+    if (langSelect) {
+        langSelect.addEventListener('change', function() {
+            changeLanguage();
+        });
+    }
+}
+
+// 3. Ensure cursor changes on hover
+document.addEventListener('DOMContentLoaded', function() {
+    // Force pointer cursor on all interactive elements
+    const interactiveElements = [
+        '.nav-links a',
+        '.footer-grid a',
+        '.cta-group a',
+        'button',
+        'select',
+        '.accordion-header',
+        '.download-btns button',
+        'input[type="checkbox"]',
+        'textarea',
+        'input[type="text"]',
+        'input[type="email"]',
+        'input[type="password"]',
+        'input[type="tel"]'
+    ];
+    
+    interactiveElements.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+            el.style.cursor = 'pointer';
+            el.style.pointerEvents = 'auto';
+        });
+    });
+    
+    // Initialize navigation fixes
+    fixAllNavigation();
+    
+    // Ensure language dropdown works
+    const languageSelect = document.getElementById('languageSelect');
+    if (languageSelect) {
+        languageSelect.onchange = function() {
+            changeLanguage();
+        };
+    }
+});
+
+// 4. Override the original scrolling function
+window.scrollToSection = function(sectionId) {
+    return scrollToSectionFixed(sectionId);
+};
 </script>
 
 </body>
 </html>
+
