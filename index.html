@@ -179,7 +179,7 @@
 <body>
 
 <!-- ENTRY MODAL - FIRST LOAD BLOCKER -->
-<div id="entryModal" class="login-modal">
+<div id="entryModal" class="login-modal show">
     <div class="modal-content">
         <h3>Welcome to CivicSpend Pro</h3>
         <p style="color:var(--slate-600)">Choose how you want to access the platform:</p>
@@ -405,7 +405,7 @@
                     <label for="followUpdates" style="font-size: 0.85rem; color: var(--slate-600);">Send me updates on budget decisions</label>
                 </div>
                 
-                <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="sendFeedback()">Submit Priority Vote</button>
+                <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="submitVote()">Submit Priority Vote</button>
             </div>
 
             <div id="already_voted" style="display: none; text-align: center; padding: 20px;">
@@ -612,11 +612,11 @@
     let mapMarkers = [];
     let map = null;
 
-    // SCROLL TO SECTION FUNCTION (FIX for navigation tabs)
-    window.scrollToSection = function(sectionId) {
+    // SCROLL TO SECTION FUNCTION
+    function scrollToSection(sectionId) {
         const element = document.getElementById(sectionId);
         if (element) {
-            const offset = 80; // Account for sticky header
+            const offset = 80;
             const elementPosition = element.getBoundingClientRect().top;
             const offsetPosition = elementPosition + window.pageYOffset - offset;
             
@@ -625,17 +625,17 @@
                 behavior: 'smooth'
             });
         }
-    };
+    }
 
-    // SHOW ADMIN SECTION (when admin link clicked)
-    window.showAdminSection = function() {
+    // SHOW ADMIN SECTION
+    function showAdminSection() {
         if (isAdmin) {
             scrollToSection('vote');
         }
-    };
+    }
 
     // ENTRY MODAL HANDLING
-    window.chooseEntry = function(type) {
+    function chooseEntry(type) {
         document.getElementById('entryUserActions').style.display = 'none';
         document.getElementById('entryAdminActions').style.display = 'none';
         
@@ -644,63 +644,61 @@
         } else if (type === 'admin') {
             document.getElementById('entryAdminActions').style.display = 'block';
         }
-    };
+    }
 
-    window.closeEntryModal = function() {
+    function closeEntryModal() {
         document.getElementById('entryModal').classList.remove('show');
         setTimeout(() => {
             document.getElementById('entryModal').style.display = 'none';
         }, 400);
-    };
+    }
 
-    // VERY IMPORTANT: Guest mode
-    window.enterAsGuest = function() {
+    // Guest mode
+    function enterAsGuest() {
         currentUser = null;
         isAdmin = false;
         
         localStorage.removeItem('currentUser');
         localStorage.removeItem('isAdmin');
         
-        // Most important lines — close modal & refresh UI
         closeEntryModal();
         updateUI();
-        
         loadPublicStats();
         
-        console.log("→ Guest mode activated");
-    };
+        console.log("Guest mode activated");
+    }
 
     // MODAL CONTROLS
-    window.openLoginModal = function() {
+    function openLoginModal() {
         document.getElementById('loginModal').style.display = 'block';
         setTimeout(() => {
             document.getElementById('loginModal').classList.add('show');
         }, 10);
-    };
+    }
     
-    window.closeLoginModal = function() {
+    function closeLoginModal() {
         document.getElementById('loginModal').classList.remove('show');
         setTimeout(() => {
             document.getElementById('loginModal').style.display = 'none';
         }, 400);
-    };
+    }
     
-    window.openAdminLogin = function() {
+    function openAdminLogin() {
         document.getElementById('adminLoginModal').style.display = 'block';
         setTimeout(() => {
             document.getElementById('adminLoginModal').classList.add('show');
         }, 10);
-    };
+    }
     
-    window.closeAdminLoginModal = function() {
+    function closeAdminLoginModal() {
         document.getElementById('adminLoginModal').classList.remove('show');
         setTimeout(() => {
             document.getElementById('adminLoginModal').style.display = 'none';
         }, 400);
-    };
+    }
 
     // SEND OTP FUNCTION
-    window.sendOTP = function() {
+    function sendOTP() {
         const phoneNumber = document.getElementById('phoneNumber').value;
         
         if (!phoneNumber || phoneNumber.length < 10) {
@@ -712,10 +710,10 @@
         document.getElementById('userLoginForm').style.display = 'none';
         document.getElementById('otpContainer').style.display = 'block';
         alert('Demo: OTP sent to ' + phoneNumber + '\nUse 123456 as OTP');
-    };
+    }
 
     // USER LOGIN SUCCESS PATH
-    window.verifyOTP = async function() {
+    function verifyOTP() {
         const otp = document.getElementById('verificationCode').value;
         
         if (otp === '123456') {
@@ -731,9 +729,8 @@
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
             localStorage.setItem('isAdmin', 'false');
             
-            // Close ALL modals
             closeLoginModal();
-            closeEntryModal();           // ← This was often missing!
+            closeEntryModal();
             
             updateUI();
             checkUserVote();
@@ -743,10 +740,10 @@
         } else {
             alert('❌ Wrong OTP (demo uses 123456)');
         }
-    };
+    }
 
     // ADMIN LOGIN SUCCESS PATH
-    window.adminLogin = function() {
+    function adminLogin() {
         const email = document.getElementById('adminEmail').value.trim() || 'admin@example.com';
         
         currentUser = {
@@ -759,18 +756,17 @@
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         localStorage.setItem('isAdmin', 'true');
         
-        // Close both modals
         closeAdminLoginModal();
-        closeEntryModal();           // ← This was missing in many cases
+        closeEntryModal();
         
         updateUI();
         loadAdminStats();
         
         alert('✅ Admin login successful!');
-    };
+    }
 
-    // LOGOUT - also show entry modal again if you want
-    window.logout = function() {
+    // LOGOUT
+    function logout() {
         currentUser = null;
         isAdmin = false;
         
@@ -780,12 +776,12 @@
         updateUI();
         loadPublicStats();
         
-        // Optional: show entry modal again after logout
+        // Show entry modal again after logout
         document.getElementById('entryModal').style.display = 'block';
         setTimeout(() => {
             document.getElementById('entryModal').classList.add('show');
         }, 10);
-    };
+    }
 
     // UPDATE UI
     function updateUI() {
@@ -855,16 +851,20 @@
             document.getElementById('already_voted').style.display = 'block';
             document.getElementById('voting_controls').style.display = 'none';
             document.getElementById('login_prompt').style.display = 'none';
+            
+            // Show user's vote
+            document.getElementById('votedTitle').textContent = 'Vote Submitted!';
+            document.getElementById('votedSubtitle').textContent = `Your priorities have been recorded. Thank you for participating!`;
         } else {
-            document.getElementById('user_welcome').innerText = "Verified: " + (currentUser.phoneNumber || 'User');
+            document.getElementById('user_welcome').textContent = "Welcome! Please set your priorities.";
             document.getElementById('login_prompt').style.display = 'none';
             document.getElementById('voting_controls').style.display = 'block';
             document.getElementById('already_voted').style.display = 'none';
         }
     }
     
-    // SEND FEEDBACK (VOTE)
-    window.sendFeedback = function() {
+    // SUBMIT VOTE FUNCTION
+    function submitVote() {
         if (!currentUser || isAdmin) {
             alert('Please login as a user to vote');
             return;
@@ -879,16 +879,22 @@
             return;
         }
         
+        // Get slider values
+        const eduValue = document.getElementById('edu_p').value;
+        const infValue = document.getElementById('inf_p').value;
+        const healthValue = document.getElementById('health_p').value;
+        const sanValue = document.getElementById('san_p').value;
+        
         const voteData = {
             uid: currentUser.uid,
             phone: currentUser.phoneNumber || 'Not provided',
             gender: gender,
             ageGroup: ageGroup,
             ward: ward,
-            edu: document.getElementById('edu_p').value,
-            infra: document.getElementById('inf_p').value,
-            health: document.getElementById('health_p').value,
-            san: document.getElementById('san_p').value,
+            edu: eduValue,
+            infra: infValue,
+            health: healthValue,
+            san: sanValue,
             reason: document.getElementById('voteReason').value || 'No reason provided',
             followUpdates: document.getElementById('followUpdates').checked,
             timestamp: Date.now(),
@@ -907,7 +913,13 @@
         if (isAdmin) {
             loadAdminStats();
         }
-    };
+    }
+    
+    // UPDATE SLIDER VALUE DISPLAY
+    function updateSlider(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value + '%';
+    }
     
     // LOAD PUBLIC STATS
     function loadPublicStats() {
@@ -917,7 +929,7 @@
         
         const ageCounts = { '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 };
         const genderCounts = { 'male': 0, 'female': 0, 'other': 0 };
-        let totalEdu = 0, totalInfra = 0;
+        let totalEdu = 0, totalInfra = 0, totalHealth = 0, totalSan = 0;
         
         votes.forEach(v => {
             if (v.ageGroup && ageCounts[v.ageGroup] !== undefined) {
@@ -928,18 +940,22 @@
             }
             if (v.edu) totalEdu += parseInt(v.edu);
             if (v.infra) totalInfra += parseInt(v.infra);
+            if (v.health) totalHealth += parseInt(v.health);
+            if (v.san) totalSan += parseInt(v.san);
         });
         
         const todayVotes = votes.filter(v => v.date === today).length;
         
+        // Update public stats display
         document.getElementById('publicTotalVotes').textContent = votes.length;
         document.getElementById('publicTodayVotes').textContent = todayVotes;
         document.getElementById('publicAvgEducation').textContent = votes.length > 0 ? Math.round(totalEdu / votes.length) + '%' : '0%';
         document.getElementById('publicAvgInfra').textContent = votes.length > 0 ? Math.round(totalInfra / votes.length) + '%' : '0%';
         
-        // Load charts
+        // Load Google Charts
         google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(() => {
+            // Age data for public chart
             const ageData = google.visualization.arrayToDataTable([
                 ['Age', 'Votes'],
                 ['18-25', ageCounts['18-25']],
@@ -948,6 +964,7 @@
                 ['50+', ageCounts['50+']]
             ]);
             
+            // Gender data for public chart
             const genderData = google.visualization.arrayToDataTable([
                 ['Gender', 'Votes'],
                 ['Male', genderCounts['male']],
@@ -955,7 +972,7 @@
                 ['Other', genderCounts['other']]
             ]);
             
-            // Budget chart
+            // Main budget chart
             const budgetData = google.visualization.arrayToDataTable([
                 ['Category', 'Amount (₹ Cr)'],
                 ['Education', 45],
@@ -982,7 +999,7 @@
                 ['Sanitation', 27, 25]
             ]);
             
-            // Draw charts
+            // Draw all charts
             if (document.getElementById('main_chart')) {
                 new google.visualization.PieChart(document.getElementById('main_chart')).draw(budgetData, {
                     pieHole: 0.6,
@@ -1020,7 +1037,7 @@
             }
             
             if (document.getElementById('publicGenderChart')) {
-                new google.visualization.ColumnChart(document.getElementById('publicGenderChart')).draw(genderData, {
+                new google.visualization.PieChart(document.getElementById('publicGenderChart')).draw(genderData, {
                     legend: 'none',
                     backgroundColor: 'transparent',
                     colors: ['#2563eb', '#10b981', '#f59e0b']
@@ -1060,6 +1077,7 @@
         
         const todayVotes = votes.filter(v => v.date === today).length;
         
+        // Update admin stats display
         if (document.getElementById('totalVotes')) document.getElementById('totalVotes').textContent = votes.length;
         if (document.getElementById('todayVotes')) document.getElementById('todayVotes').textContent = todayVotes;
         if (document.getElementById('maleVotes')) document.getElementById('maleVotes').textContent = genderCounts['male'];
@@ -1173,7 +1191,7 @@
         });
     }
     
-    window.filterMapByWard = function() {
+    function filterMapByWard() {
         const ward = document.getElementById('wardFilter').value;
         mapMarkers.forEach(item => {
             if (ward === 'all' || item.project.ward.includes(ward)) {
@@ -1182,9 +1200,9 @@
                 map.removeLayer(item.marker);
             }
         });
-    };
+    }
     
-    window.filterMapByStatus = function() {
+    function filterMapByStatus() {
         const status = document.getElementById('statusFilter').value;
         mapMarkers.forEach(item => {
             if (status === 'all' || item.project.status === status) {
@@ -1193,9 +1211,9 @@
                 map.removeLayer(item.marker);
             }
         });
-    };
+    }
     
-    window.reportIssue = function(projectTitle) {
+    function reportIssue(projectTitle) {
         if (!currentUser) {
             alert('Please login to report an issue');
             return;
@@ -1204,7 +1222,7 @@
         if (issue) {
             alert('Thank you! Your report has been submitted.');
         }
-    };
+    }
     
     // LOAD LEDGER DATA
     function loadLedgerData() {
@@ -1236,19 +1254,15 @@
         });
     }
     
-    // UTILITY FUNCTIONS
-    window.updateSlider = function(id, value) {
-        const element = document.getElementById(id);
-        if (element) element.textContent = value + '%';
-    };
-    
-    window.toggleAccordion = function(header) {
+    // ACCORDION TOGGLE
+    function toggleAccordion(header) {
         const content = header.nextElementSibling;
         content.classList.toggle('active');
         header.lastElementChild.textContent = content.classList.contains('active') ? '−' : '+';
-    };
+    }
     
-    window.downloadCSV = function() {
+    // DOWNLOAD FUNCTIONS
+    function downloadCSV() {
         const csv = 'Date,Category,Description,Amount,Ward,Vendor,Status\n' +
                    '2026-01-14,Education,Smart School Project,25000000,Ward 5,ABC Constructions,Completed\n' +
                    '2026-01-13,Healthcare,Primary Health Center,18000000,Ward 7,MediCare Builders,In Progress\n' +
@@ -1261,9 +1275,9 @@
         a.href = url;
         a.download = 'civicspend_ledger.csv';
         a.click();
-    };
+    }
     
-    window.downloadJSON = function() {
+    function downloadJSON() {
         const data = {
             ledger: [
                 { date: '2026-01-14', category: 'Education', description: 'Smart School Project', amount: 25000000, ward: 'Ward 5', vendor: 'ABC Constructions', status: 'Completed' },
@@ -1279,17 +1293,17 @@
         a.href = url;
         a.download = 'civicspend_data.json';
         a.click();
-    };
+    }
     
-    window.downloadPDF = function() {
+    function downloadPDF() {
         alert('PDF report would be generated and downloaded. This is a demo feature.');
-    };
+    }
     
-    window.exportVoteData = function() {
+    function exportVoteData() {
         alert('Vote data export would be generated. This is a demo feature.');
-    };
+    }
     
-    // TRANSLATION SYSTEM - FIXED
+    // TRANSLATION SYSTEM
     const I18N = {
         en: {
             heroTitle: "Government Spending, <br><span style='color:var(--brand)'>Decoded for You.</span>",
@@ -1403,10 +1417,10 @@
         }
     };
     
-    window.changeLanguage = function() {
+    function changeLanguage() {
         currentLanguage = document.getElementById('languageSelect').value;
         applyLanguage(currentLanguage);
-    };
+    }
     
     function applyLanguage(lang) {
         const t = I18N[lang] || I18N.en;
@@ -1429,67 +1443,21 @@
             const el = document.getElementById(id);
             if (el && t[id]) {
                 if (id === 'heroTitle' || id === 'chartDesc') {
-                    el.innerHTML = t[id]; // Use innerHTML for elements with HTML
+                    el.innerHTML = t[id];
                 } else {
                     el.textContent = t[id];
                 }
             }
         });
-        
-        // Update select options
-        const genderSelect = document.getElementById('genderSelect');
-        const ageGroupSelect = document.getElementById('ageGroupSelect');
-        const wardSelect = document.getElementById('wardSelect');
-        
-        if (lang === 'ta') {
-            if (genderSelect) {
-                genderSelect.options[0].text = 'பாலினத்தைத் தேர்ந்தெடுக்கவும்';
-                genderSelect.options[1].text = 'ஆண்';
-                genderSelect.options[2].text = 'பெண்';
-                genderSelect.options[3].text = 'மற்றவை';
-            }
-            if (ageGroupSelect) {
-                ageGroupSelect.options[0].text = 'வயது குழுவைத் தேர்ந்தெடுக்கவும்';
-            }
-            if (wardSelect) {
-                wardSelect.options[0].text = 'உங்கள் வார்டைத் தேர்ந்தெடுக்கவும்';
-            }
-        } else if (lang === 'hi') {
-            if (genderSelect) {
-                genderSelect.options[0].text = 'लिंग चुनें';
-                genderSelect.options[1].text = 'पुरुष';
-                genderSelect.options[2].text = 'महिला';
-                genderSelect.options[3].text = 'अन्य';
-            }
-            if (ageGroupSelect) {
-                ageGroupSelect.options[0].text = 'आयु समूह चुनें';
-            }
-            if (wardSelect) {
-                wardSelect.options[0].text = 'अपना वार्ड चुनें';
-            }
-        } else {
-            if (genderSelect) {
-                genderSelect.options[0].text = 'Select Gender';
-                genderSelect.options[1].text = 'Male';
-                genderSelect.options[2].text = 'Female';
-                genderSelect.options[3].text = 'Other';
-            }
-            if (ageGroupSelect) {
-                ageGroupSelect.options[0].text = 'Select Age Group';
-            }
-            if (wardSelect) {
-                wardSelect.options[0].text = 'Select Your Ward';
-            }
-        }
     }
     
     // CHATBOT FUNCTIONS
-    window.toggleChatbot = function() {
+    function toggleChatbot() {
         const panel = document.getElementById('chatbotPanel');
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    };
+    }
     
-    window.sendChat = function() {
+    function sendChat() {
         const input = document.getElementById('chatInput');
         const message = input.value.trim();
         
@@ -1509,12 +1477,11 @@
             chatMessages.innerHTML += `<div style="margin-bottom:10px; background:#eff6ff; padding:10px; border-radius:8px;"><strong>Bot:</strong> ${response}</div>`;
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }, 500);
-    };
+    }
     
     function generateBotResponse(message) {
         const lowerMessage = message.toLowerCase();
         
-        // Improved chatbot responses
         if (lowerMessage.includes('budget') || lowerMessage.includes('spending') || lowerMessage.includes('money')) {
             return "The current annual budget is ₹160 Cr allocated across Education (28%), Healthcare (20%), Infrastructure (36%), and Sanitation (16%). You can see the detailed breakdown in the main chart and download the data.";
         } else if (lowerMessage.includes('vote') || lowerMessage.includes('voting') || lowerMessage.includes('priority')) {
@@ -1548,11 +1515,6 @@
     
     // INITIALIZE ON LOAD
     window.addEventListener('load', function() {
-        // Give a tiny delay so transition looks nice
-        setTimeout(() => {
-            document.getElementById('entryModal').classList.add('show');
-        }, 100);
-        
         // Initialize map
         initMap();
         
@@ -1583,6 +1545,13 @@
                 });
             });
         }
+        
+        // Initialize accordion
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', function() {
+                toggleAccordion(this);
+            });
+        });
     });
     
     function updateDataFreshness() {
@@ -1590,6 +1559,34 @@
         const element = document.getElementById('dataFreshness');
         if (element) element.textContent = `Data synced ${hours}h ago`;
     }
+    
+    // Make functions available globally
+    window.scrollToSection = scrollToSection;
+    window.showAdminSection = showAdminSection;
+    window.chooseEntry = chooseEntry;
+    window.closeEntryModal = closeEntryModal;
+    window.enterAsGuest = enterAsGuest;
+    window.openLoginModal = openLoginModal;
+    window.closeLoginModal = closeLoginModal;
+    window.openAdminLogin = openAdminLogin;
+    window.closeAdminLoginModal = closeAdminLoginModal;
+    window.sendOTP = sendOTP;
+    window.verifyOTP = verifyOTP;
+    window.adminLogin = adminLogin;
+    window.logout = logout;
+    window.submitVote = submitVote;
+    window.updateSlider = updateSlider;
+    window.filterMapByWard = filterMapByWard;
+    window.filterMapByStatus = filterMapByStatus;
+    window.reportIssue = reportIssue;
+    window.toggleAccordion = toggleAccordion;
+    window.downloadCSV = downloadCSV;
+    window.downloadJSON = downloadJSON;
+    window.downloadPDF = downloadPDF;
+    window.exportVoteData = exportVoteData;
+    window.changeLanguage = changeLanguage;
+    window.toggleChatbot = toggleChatbot;
+    window.sendChat = sendChat;
 </script>
 
 </body>
