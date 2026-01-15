@@ -69,13 +69,13 @@
             position: sticky; top: 0; z-index: 1000;
         }
         .logo { font-weight: 800; font-size: 1.4rem; color: var(--brand); letter-spacing: -0.5px; }
-        .nav-links { display: flex; align-items: center; }
+        .nav-links { display: flex; align-items: center; gap: 15px; }
         .nav-links a { 
             text-decoration: none; color: var(--slate-600); font-weight: 600; 
-            font-size: 0.9rem; margin-left: 24px; transition: 0.2s; 
-            cursor: pointer;
+            font-size: 0.9rem; transition: 0.2s; cursor: pointer;
+            padding: 8px 12px; border-radius: 6px;
         }
-        .nav-links a:hover { color: var(--brand); }
+        .nav-links a:hover { color: var(--brand); background: var(--brand-soft); }
         .user-status { font-weight: 600; color: var(--brand); }
         .admin-badge { background: #fef3c7; color: var(--warning); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
 
@@ -169,7 +169,7 @@
             .dashboard-container { grid-template-columns: 1fr; } 
             .hero h1 { font-size: 2.8rem; }
             .vote-demographics { grid-template-columns: 1fr; }
-            .nav-links { flex-wrap: wrap; }
+            .nav-links { flex-wrap: wrap; gap: 10px; }
         }
         footer { background: var(--slate-900); color: white; padding: 80px 10%; margin-top: 0; }
         .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 50px; }
@@ -241,11 +241,11 @@
 <nav>
     <div class="logo">🏙️ CivicSpend</div>
     <div class="nav-links">
-        <a onclick="scrollToSection('dashboard')">Dashboard</a>
-        <a onclick="scrollToSection('how-it-works')">How It Works</a>
-        <a onclick="scrollToSection('vote')">Vote Priorities</a>
-        <a onclick="scrollToSection('projects')">Projects</a>
-        <a href="#admin" id="adminLink" style="display: none;" onclick="showAdminSection()">Admin</a>
+        <a href="#dashboard" onclick="scrollToSection('dashboard')">Dashboard</a>
+        <a href="#how-it-works" onclick="scrollToSection('how-it-works')">How It Works</a>
+        <a href="#vote" onclick="scrollToSection('vote')">Vote Priorities</a>
+        <a href="#projects" onclick="scrollToSection('projects')">Projects</a>
+        <a href="#admin" id="adminLink" style="display: none;" onclick="scrollToSection('vote')">Admin</a>
         <select id="languageSelect" onchange="changeLanguage()" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">
             <option value="en">English</option>
             <option value="ta">தமிழ் (Tamil)</option>
@@ -261,8 +261,8 @@
     <h1 id="heroTitle">Government Spending, <br><span style="color:var(--brand)">Decoded for You.</span></h1>
     <p id="heroSubtitle">CivicSpend Pro bridges the gap between complex municipal ledgers and citizen understanding. Explore live data, track every rupee, and influence the city's future through decentralized feedback.</p>
     <div class="cta-group">
-        <a onclick="scrollToSection('dashboard')" class="btn btn-primary">Enter Dashboard</a>
-        <a onclick="scrollToSection('how-it-works')" class="btn" style="background: white; border: 1px solid #e2e8f0;">Learn More</a>
+        <a href="#dashboard" class="btn btn-primary" onclick="scrollToSection('dashboard')">Enter Dashboard</a>
+        <a href="#how-it-works" class="btn" style="background: white; border: 1px solid #e2e8f0;" onclick="scrollToSection('how-it-works')">Learn More</a>
     </div>
 </section>
 
@@ -393,10 +393,10 @@
                     </select>
                 </div>
 
-                <div class="input-group"><label id="eduLabel">Education <span id="val1">25%</span></label><input type="range" id="edu_p" value="25" min="0" max="100" oninput="updateSlider('val1', this.value)"></div>
-                <div class="input-group"><label id="infLabel">Infrastructure <span id="val2">25%</span></label><input type="range" id="inf_p" value="25" min="0" max="100" oninput="updateSlider('val2', this.value)"></div>
-                <div class="input-group"><label id="healthLabel">Healthcare <span id="val3">25%</span></label><input type="range" id="health_p" value="25" min="0" max="100" oninput="updateSlider('val3', this.value)"></div>
-                <div class="input-group"><label id="sanLabel">Sanitation <span id="val4">25%</span></label><input type="range" id="san_p" value="25" min="0" max="100" oninput="updateSlider('val4', this.value)"></div>
+                <div class="input-group"><label id="eduLabel">Education <span id="val1">25%</span></label><input type="range" id="edu_p" value="25" min="0" max="100" oninput="updateSliderValue('val1', this.value)"></div>
+                <div class="input-group"><label id="infLabel">Infrastructure <span id="val2">25%</span></label><input type="range" id="inf_p" value="25" min="0" max="100" oninput="updateSliderValue('val2', this.value)"></div>
+                <div class="input-group"><label id="healthLabel">Healthcare <span id="val3">25%</span></label><input type="range" id="health_p" value="25" min="0" max="100" oninput="updateSliderValue('val3', this.value)"></div>
+                <div class="input-group"><label id="sanLabel">Sanitation <span id="val4">25%</span></label><input type="range" id="san_p" value="25" min="0" max="100" oninput="updateSliderValue('val4', this.value)"></div>
 
                 <textarea id="voteReason" placeholder="Why do you prioritize these areas? (Optional but recommended)" style="width:100%; padding:12px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px; resize:vertical; min-height:80px;"></textarea>
                 
@@ -406,6 +406,10 @@
                 </div>
                 
                 <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="sendFeedback()">Submit Priority Vote</button>
+                
+                <div id="totalDisplay" style="margin-top: 15px; padding: 10px; background: #f8fafc; border-radius: 8px; font-size: 0.9rem; text-align: center;">
+                    Total: <span id="totalPercent">100%</span>
+                </div>
             </div>
 
             <div id="already_voted" style="display: none; text-align: center; padding: 20px;">
@@ -592,10 +596,10 @@
         <div>
             <h4>Quick Links</h4>
             <ul>
-                <li><a onclick="scrollToSection('dashboard')">Dashboard</a></li>
-                <li><a onclick="scrollToSection('vote')">Vote Now</a></li>
-                <li><a onclick="scrollToSection('projects')">Project Map</a></li>
-                <li><a onclick="scrollToSection('how-it-works')">How It Works</a></li>
+                <li><a href="#dashboard" onclick="scrollToSection('dashboard')">Dashboard</a></li>
+                <li><a href="#vote" onclick="scrollToSection('vote')">Vote Now</a></li>
+                <li><a href="#projects" onclick="scrollToSection('projects')">Project Map</a></li>
+                <li><a href="#how-it-works" onclick="scrollToSection('how-it-works')">How It Works</a></li>
             </ul>
         </div>
     </div>
@@ -611,9 +615,13 @@
     let currentLanguage = 'en';
     let mapMarkers = [];
     let map = null;
+    let sliders = {};
 
-    // SCROLL TO SECTION FUNCTION (FIX for navigation tabs)
-    window.scrollToSection = function(sectionId) {
+    // FIX: SCROLL TO SECTION FUNCTION (Fixed navigation)
+    function scrollToSection(sectionId) {
+        // Prevent default behavior
+        event.preventDefault();
+        
         const element = document.getElementById(sectionId);
         if (element) {
             const offset = 80; // Account for sticky header
@@ -625,14 +633,27 @@
                 behavior: 'smooth'
             });
         }
-    };
+    }
 
-    // SHOW ADMIN SECTION (when admin link clicked)
-    window.showAdminSection = function() {
-        if (isAdmin) {
-            scrollToSection('vote');
-        }
-    };
+    // FIX: NAVIGATION LINKS CLICK HANDLERS
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add click handlers to all navigation links
+        const navLinks = document.querySelectorAll('.nav-links a, .footer-grid a, .cta-group a');
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') && link.getAttribute('href').startsWith('#')) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const href = this.getAttribute('href');
+                    if (href === '#admin' && isAdmin) {
+                        scrollToSection('vote');
+                    } else if (href !== '#admin') {
+                        const sectionId = href.substring(1); // Remove #
+                        scrollToSection(sectionId);
+                    }
+                });
+            }
+        });
+    });
 
     // ENTRY MODAL HANDLING
     window.chooseEntry = function(type) {
@@ -661,10 +682,8 @@
         localStorage.removeItem('currentUser');
         localStorage.removeItem('isAdmin');
         
-        // Most important lines — close modal & refresh UI
         closeEntryModal();
         updateUI();
-        
         loadPublicStats();
         
         console.log("→ Guest mode activated");
@@ -733,7 +752,7 @@
             
             // Close ALL modals
             closeLoginModal();
-            closeEntryModal();           // ← This was often missing!
+            closeEntryModal();
             
             updateUI();
             checkUserVote();
@@ -761,7 +780,7 @@
         
         // Close both modals
         closeAdminLoginModal();
-        closeEntryModal();           // ← This was missing in many cases
+        closeEntryModal();
         
         updateUI();
         loadAdminStats();
@@ -769,7 +788,7 @@
         alert('✅ Admin login successful!');
     };
 
-    // LOGOUT - also show entry modal again if you want
+    // LOGOUT
     window.logout = function() {
         currentUser = null;
         isAdmin = false;
@@ -780,7 +799,7 @@
         updateUI();
         loadPublicStats();
         
-        // Optional: show entry modal again after logout
+        // Show entry modal again after logout
         document.getElementById('entryModal').style.display = 'block';
         setTimeout(() => {
             document.getElementById('entryModal').classList.add('show');
@@ -855,11 +874,122 @@
             document.getElementById('already_voted').style.display = 'block';
             document.getElementById('voting_controls').style.display = 'none';
             document.getElementById('login_prompt').style.display = 'none';
+            
+            // Show user's previous vote values
+            const voteData = userVotes[currentUser.uid];
+            document.getElementById('user_welcome').innerText = `Verified: ${currentUser.phoneNumber || 'User'} | Your previous vote recorded`;
         } else {
             document.getElementById('user_welcome').innerText = "Verified: " + (currentUser.phoneNumber || 'User');
             document.getElementById('login_prompt').style.display = 'none';
             document.getElementById('voting_controls').style.display = 'block';
             document.getElementById('already_voted').style.display = 'none';
+            
+            // Initialize sliders with default values
+            initializeSliders();
+        }
+    }
+    
+    // FIX: VOTE SLIDER MANAGEMENT SYSTEM
+    function initializeSliders() {
+        // Store slider references
+        sliders = {
+            edu: document.getElementById('edu_p'),
+            infra: document.getElementById('inf_p'),
+            health: document.getElementById('health_p'),
+            san: document.getElementById('san_p')
+        };
+        
+        // Initialize all to 25%
+        Object.values(sliders).forEach(slider => {
+            if (slider) slider.value = 25;
+        });
+        
+        // Update display values
+        updateSliderValue('val1', 25);
+        updateSliderValue('val2', 25);
+        updateSliderValue('val3', 25);
+        updateSliderValue('val4', 25);
+        
+        // Add event listeners for dynamic adjustment
+        Object.values(sliders).forEach(slider => {
+            if (slider) {
+                slider.addEventListener('input', function() {
+                    adjustOtherSliders(this.id, parseInt(this.value));
+                });
+            }
+        });
+    }
+    
+    // FIX: DYNAMIC SLIDER ADJUSTMENT
+    function adjustOtherSliders(changedId, newValue) {
+        const sliderIds = ['edu_p', 'inf_p', 'health_p', 'san_p'];
+        const changedIndex = sliderIds.indexOf(changedId);
+        
+        if (changedIndex === -1) return;
+        
+        // Calculate total of other sliders
+        let otherTotal = 0;
+        for (let i = 0; i < sliderIds.length; i++) {
+            if (i !== changedIndex) {
+                otherTotal += parseInt(sliders[sliderIds[i].split('_')[0]].value);
+            }
+        }
+        
+        // Calculate remaining percentage
+        const remaining = 100 - newValue;
+        
+        // If other sliders exceed remaining, adjust them proportionally
+        if (otherTotal > remaining) {
+            const scaleFactor = remaining / otherTotal;
+            
+            for (let i = 0; i < sliderIds.length; i++) {
+                if (i !== changedIndex) {
+                    const slider = sliders[sliderIds[i].split('_')[0]];
+                    const newSliderValue = Math.round(parseInt(slider.value) * scaleFactor);
+                    slider.value = newSliderValue;
+                    
+                    // Update display
+                    const displayId = 'val' + (i + 1);
+                    updateSliderValue(displayId, newSliderValue);
+                }
+            }
+        }
+        
+        // Update total display
+        updateTotalDisplay();
+    }
+    
+    // FIX: UPDATE SLIDER VALUE DISPLAY
+    window.updateSliderValue = function(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value + '%';
+            updateTotalDisplay();
+        }
+    };
+    
+    // FIX: UPDATE TOTAL DISPLAY
+    function updateTotalDisplay() {
+        if (!sliders.edu || !sliders.infra || !sliders.health || !sliders.san) return;
+        
+        const total = parseInt(sliders.edu.value) + parseInt(sliders.infra.value) + 
+                     parseInt(sliders.health.value) + parseInt(sliders.san.value);
+        
+        const totalElement = document.getElementById('totalPercent');
+        if (totalElement) {
+            totalElement.textContent = total + '%';
+            
+            // Color code the total
+            if (total === 100) {
+                totalElement.style.color = '#10b981';
+                totalElement.innerHTML = '100% ✓';
+            } else if (total < 100) {
+                totalElement.style.color = '#f59e0b';
+                totalElement.innerHTML = total + '% (Add ' + (100 - total) + '%)';
+            } else {
+                totalElement.style.color = '#ef4444';
+                totalElement.innerHTML = total + '% (Reduce ' + (total - 100) + '%)';
+            }
         }
     }
     
@@ -879,16 +1009,28 @@
             return;
         }
         
+        // Check if total is 100%
+        const eduVal = parseInt(document.getElementById('edu_p').value);
+        const infraVal = parseInt(document.getElementById('inf_p').value);
+        const healthVal = parseInt(document.getElementById('health_p').value);
+        const sanVal = parseInt(document.getElementById('san_p').value);
+        const total = eduVal + infraVal + healthVal + sanVal;
+        
+        if (total !== 100) {
+            alert(`Total must be exactly 100%. Currently: ${total}%. Please adjust your priorities.`);
+            return;
+        }
+        
         const voteData = {
             uid: currentUser.uid,
             phone: currentUser.phoneNumber || 'Not provided',
             gender: gender,
             ageGroup: ageGroup,
             ward: ward,
-            edu: document.getElementById('edu_p').value,
-            infra: document.getElementById('inf_p').value,
-            health: document.getElementById('health_p').value,
-            san: document.getElementById('san_p').value,
+            edu: eduVal,
+            infra: infraVal,
+            health: healthVal,
+            san: sanVal,
             reason: document.getElementById('voteReason').value || 'No reason provided',
             followUpdates: document.getElementById('followUpdates').checked,
             timestamp: Date.now(),
@@ -900,7 +1042,7 @@
         userVotes[currentUser.uid] = voteData;
         localStorage.setItem('userVotes', JSON.stringify(userVotes));
         
-        alert('✅ Vote submitted successfully!');
+        alert('✅ Vote submitted successfully! Thank you for your input.');
         checkUserVote();
         loadPublicStats();
         
@@ -917,7 +1059,7 @@
         
         const ageCounts = { '18-25': 0, '26-35': 0, '36-50': 0, '50+': 0 };
         const genderCounts = { 'male': 0, 'female': 0, 'other': 0 };
-        let totalEdu = 0, totalInfra = 0;
+        let totalEdu = 0, totalInfra = 0, totalHealth = 0, totalSan = 0;
         
         votes.forEach(v => {
             if (v.ageGroup && ageCounts[v.ageGroup] !== undefined) {
@@ -928,6 +1070,8 @@
             }
             if (v.edu) totalEdu += parseInt(v.edu);
             if (v.infra) totalInfra += parseInt(v.infra);
+            if (v.health) totalHealth += parseInt(v.health);
+            if (v.san) totalSan += parseInt(v.san);
         });
         
         const todayVotes = votes.filter(v => v.date === today).length;
@@ -1237,11 +1381,6 @@
     }
     
     // UTILITY FUNCTIONS
-    window.updateSlider = function(id, value) {
-        const element = document.getElementById(id);
-        if (element) element.textContent = value + '%';
-    };
-    
     window.toggleAccordion = function(header) {
         const content = header.nextElementSibling;
         content.classList.toggle('active');
@@ -1286,10 +1425,23 @@
     };
     
     window.exportVoteData = function() {
-        alert('Vote data export would be generated. This is a demo feature.');
+        const userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
+        const votes = Object.values(userVotes);
+        
+        const csv = 'Phone,Gender,Age Group,Ward,Education,Infrastructure,Healthcare,Sanitation,Reason,Date\n' +
+                   votes.map(v => 
+                       `"${v.phone || ''}","${v.gender || ''}","${v.ageGroup || ''}","${v.ward || ''}",${v.edu || 0},${v.infra || 0},${v.health || 0},${v.san || 0},"${(v.reason || '').replace(/"/g, '""')}","${v.date || ''}"`
+                   ).join('\n');
+        
+        const blob = new Blob([csv], {type: 'text/csv'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'vote_data_export.csv';
+        a.click();
     };
     
-    // TRANSLATION SYSTEM - FIXED
+    // TRANSLATION SYSTEM
     const I18N = {
         en: {
             heroTitle: "Government Spending, <br><span style='color:var(--brand)'>Decoded for You.</span>",
@@ -1429,58 +1581,12 @@
             const el = document.getElementById(id);
             if (el && t[id]) {
                 if (id === 'heroTitle' || id === 'chartDesc') {
-                    el.innerHTML = t[id]; // Use innerHTML for elements with HTML
+                    el.innerHTML = t[id];
                 } else {
                     el.textContent = t[id];
                 }
             }
         });
-        
-        // Update select options
-        const genderSelect = document.getElementById('genderSelect');
-        const ageGroupSelect = document.getElementById('ageGroupSelect');
-        const wardSelect = document.getElementById('wardSelect');
-        
-        if (lang === 'ta') {
-            if (genderSelect) {
-                genderSelect.options[0].text = 'பாலினத்தைத் தேர்ந்தெடுக்கவும்';
-                genderSelect.options[1].text = 'ஆண்';
-                genderSelect.options[2].text = 'பெண்';
-                genderSelect.options[3].text = 'மற்றவை';
-            }
-            if (ageGroupSelect) {
-                ageGroupSelect.options[0].text = 'வயது குழுவைத் தேர்ந்தெடுக்கவும்';
-            }
-            if (wardSelect) {
-                wardSelect.options[0].text = 'உங்கள் வார்டைத் தேர்ந்தெடுக்கவும்';
-            }
-        } else if (lang === 'hi') {
-            if (genderSelect) {
-                genderSelect.options[0].text = 'लिंग चुनें';
-                genderSelect.options[1].text = 'पुरुष';
-                genderSelect.options[2].text = 'महिला';
-                genderSelect.options[3].text = 'अन्य';
-            }
-            if (ageGroupSelect) {
-                ageGroupSelect.options[0].text = 'आयु समूह चुनें';
-            }
-            if (wardSelect) {
-                wardSelect.options[0].text = 'अपना वार्ड चुनें';
-            }
-        } else {
-            if (genderSelect) {
-                genderSelect.options[0].text = 'Select Gender';
-                genderSelect.options[1].text = 'Male';
-                genderSelect.options[2].text = 'Female';
-                genderSelect.options[3].text = 'Other';
-            }
-            if (ageGroupSelect) {
-                ageGroupSelect.options[0].text = 'Select Age Group';
-            }
-            if (wardSelect) {
-                wardSelect.options[0].text = 'Select Your Ward';
-            }
-        }
     }
     
     // CHATBOT FUNCTIONS
@@ -1514,17 +1620,18 @@
     function generateBotResponse(message) {
         const lowerMessage = message.toLowerCase();
         
-        // Improved chatbot responses
         if (lowerMessage.includes('budget') || lowerMessage.includes('spending') || lowerMessage.includes('money')) {
             return "The current annual budget is ₹160 Cr allocated across Education (28%), Healthcare (20%), Infrastructure (36%), and Sanitation (16%). You can see the detailed breakdown in the main chart and download the data.";
         } else if (lowerMessage.includes('vote') || lowerMessage.includes('voting') || lowerMessage.includes('priority')) {
-            return "You can vote on budget priorities by logging in with your phone number. Select your gender, age group, ward, and use sliders to allocate percentages to Education, Infrastructure, Healthcare, and Sanitation.";
+            return "You can vote on budget priorities by logging in with your phone number. Select your gender, age group, ward, and use sliders to allocate percentages to Education, Infrastructure, Healthcare, and Sanitation. Total must equal 100%.";
         } else if (lowerMessage.includes('project') || lowerMessage.includes('map') || lowerMessage.includes('location')) {
             return "Check the Infrastructure Projects Map section to see active projects in your city. You can filter by ward and status. Click on markers for details and to report issues.";
         } else if (lowerMessage.includes('login') || lowerMessage.includes('sign in') || lowerMessage.includes('register')) {
             return "Users: Enter phone number and use '123456' as OTP. Admins: Use any email and password to login as admin.";
         } else if (lowerMessage.includes('admin') || lowerMessage.includes('dashboard')) {
             return "Admin dashboard shows voting statistics, demographic breakdowns, ward-wise distribution, and recent votes. Login as admin with any email/password to access.";
+        } else if (lowerMessage.includes('slider') || lowerMessage.includes('adjust') || lowerMessage.includes('percentage')) {
+            return "When you adjust one slider, the other sliders automatically adjust to keep the total at 100%. This ensures your vote percentages add up correctly.";
         } else if (lowerMessage.includes('data') || lowerMessage.includes('source') || lowerMessage.includes('where')) {
             return "Data comes from the Municipal Financial Management System (MFMS) and is updated every 24 hours. All data is validated and audited quarterly.";
         } else if (lowerMessage.includes('help') || lowerMessage.includes('how') || lowerMessage.includes('what')) {
